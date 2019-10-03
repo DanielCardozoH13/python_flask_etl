@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}
+    ETL | csv
+{% endblock %}
+
+{% block content %}
+    <div class="container text-center">
+        {% if not request.files['file'] and not request.form %}
+            <h2 align='center'>Seleccione un conjunto de datos</h2><br><br>
+            <form class="md-form" action="{{url_for('upload')}}" method="POST" enctype = "multipart/form-data">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label for="imput_archivo_csv">Elegir archivo:</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="file" name="file" class="form-control-file form-control" id="imput_archivo_csv">
+                    </div>
+                </div>
+                <div class="row">
+                    <button type="submit" class="btn btn-primary mb-2" value="send">Cargar</button>
+                </div>
+            </form>
+        {% elif df.empty == False %}
+            <h2 align='center'>El conjunto de datos fue purgado</h2><br><br>
+            <p class="lead">Se eliminarón todos los registros donde hubian registros vacios o Null, y se presentan a continuación los primeros {{df.shape[1] - 1}} registros</p>
+            <div class="container tabla">
+                <div class="panel panel-info">
+                  <!-- Default panel contents -->
+                  <div class="panel-heading">{{request.files['file'].filename}}</div>
+
+                  <!-- Table -->
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        {% for titulo in df.columns %}
+                            <th>{{titulo}}</th>  
+                        {% endfor %}
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {% for indice in range(df.shape[1]) %}
+                            <tr>
+                                <th scope="row">{{indice}}</th>
+                                {% for registro in df.loc[indice] %}
+                                <td>{{registro}}</td>
+                                {% endfor %}
+                            </tr>  
+                        {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+            <div class="container text-center">
+                <h2 align='center'>Gráficar la información</h2><br><br>
+                <form class="md-form" action="{{url_for('graficar')}}" method="POST" id="datos_grafica">
+                    <div class="col-md-3">
+                        <!--
+                        <div class="input-group">
+                        -->
+                        <label>Eje X:</label>
+                            <ul class="list-group">
+                                {% for titulo in df.columns %}
+                                    <li class="list-group-item">
+                                        <span class="badge"><input type="radio" aria-label="Checkbox para columna" name="eje_x" value="{{titulo}}"></span>
+                                        {{titulo}}
+                                    </li>  
+                                {% endfor %}
+                            </ul>
+                        <!--</div>-->
+                    </div>
+                    <div class="col-md-3">
+                        <!--<div class="input-group">-->
+                            <label>Eje Y:</label>
+                            <ul class="list-group">
+                                {% for titulo in df.columns %}
+                                    <li class="list-group-item">
+                                        <span class="badge"><input type="radio" aria-label="Checkbox para columna" name="eje_y" value="{{titulo}}"></span>
+                                        {{titulo}}
+                                    </li>  
+                                {% endfor %}
+                            </ul>
+                        <!--</div>-->
+                    </div>
+                    <div class="col-md-5">
+                        <div class="row">
+                            <label>Cantidad de Registros</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" placeholder="Cantidad de registros" aria-describedby="basic-addon2" name="cantidad_registros">
+                                <span class="input-group-addon" id="basic-addon2">ejemplo: 10</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label>Titulo Gráfica</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Nombre de la gráfica" aria-describedby="basic-addon2" name="titulo_grafica">
+                                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Gráfica</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label>Titulo Eje X</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Nombre del Eje X" aria-describedby="basic-addon2" name="titulo_ejex">
+                                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje X</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <label>Titulo Eje Y</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Nombre del Eje Y" aria-describedby="basic-addon2" name="titulo_ejey">
+                                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje Y</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <input type="hidden" name="filename" value="{{request.files['file'].filename}}" class="form-control-file form-control">
+                            <button type="submit" class="btn btn-primary mb-2" value="send">Gráficar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>        
+        {% elif ruta_grafica != None %}
+            ruta_grafica
+        {% endif %}
+    </div>
+    
+{% endblock %}
