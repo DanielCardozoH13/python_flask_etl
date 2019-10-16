@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}
+    ETL | csv consultas
+{% endblock %}
+
+{% block content %}
+	<div class="container">
+		<div class="row limpieza">
+			<div class="col-12">
+				<section class="headline">
+					<h1 class="title margen_botton_titulo">Consultas csv</h1>
+				</section>
+			</div>
+			<div class="col-lg-9">
+			<article>
+				{% if vista == 1%}
+					{% if len(dataframe.columns) > 0 %}
+					    <div class="panel panel-primary">
+						    <div class="panel-heading">{{session['data_csv']}}</div>
+						    <div class="panel-body">
+						        <h2>
+						            Cantidad de Columnas 
+						            <span class="label label-default">{{len(dataframe.columns)}}</span>
+						        </h2>
+						        <h2>
+						            Cantidad de Filas 
+						            <span class="label label-default">{{ len(dataframe.index) 	}}</span>
+						        </h2>
+						        <h2>
+						            Cantidad de Valores NULL 
+						            <span class="label label-default">{{dataframe.isna().sum().sum() }}</span>
+						        </h2>
+						    </div>
+					    </div>
+		        	{% endif %}
+				{% elif vista == 2 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Ver Columnas</h3>
+						</div>
+						<div class="panel-body">
+							<div class="list-group">
+								{% for i,elemento in enumerate(dataframe.columns) %}
+								  	<a href="{{url_for('consultas_csv', action = 1, item = elemento)}}" class="list-group-item {% if elemento == dataframe_col.name %} active {% endif %}">
+								    	{{elemento}}
+								  	</a>
+								{% endfor %}
+							</div>
+							{% if len(dataframe_col) > 0 %}
+							<div class="row ">
+								<div class="table-responsive ">
+								  	<table class="table table-hover">
+									    <thead>
+									    <tr>
+										    <th>#</th>
+										    <th>{{dataframe_col.name }}</th>
+									    </tr>
+									    </thead>
+									    <tbody>
+									    {% for n,item in enumerate(dataframe_col) %}
+									    <tr>
+										    <td>{{n}}</td>
+										    <td>{{item}}</td>
+									    </tr>
+									    {% endfor %}
+									    </tbody>
+								  	</table>
+								</div>
+							</div>
+							{% endif %}
+						</div>
+					</div>
+				{% elif vista == 3 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Ver Filas</h3>
+						</div>
+						<div class="panel-body">
+							<div class="row">
+								<form class="md-form" action="{{url_for('consultas_csv', action = 2)}}" method="POST" >
+									<div class="col-xs-4 form-group">
+										<label>
+											Grupo de filas
+										</label>
+										<div class="radio col">
+										  	<label>
+										  		<div class="radio col-md-4">
+											    	<input name="cantidad" type="radio" value="rango">
+											    	Rango
+											    </div>
+										  	</label>
+										  	<label>
+										  		<div class="radio col-md-4">
+											    	<input name="cantidad" type="radio" value="todos" checked>
+											    	Todos
+											    </div>
+										  	</label>
+										</div>
+									</div>
+									<div class="col-xs-2 form-group">
+										<input name="inicio" type="number" class="form-control" placeholder="Inicio">
+									</div>
+									<div class="col-xs-2 form-group">
+										<input name="fin" type="number" class="form-control" placeholder="Fin">
+									</div>
+									<div class="col-xs-3 form-group pull-right">
+										<button type="submit" class="btn btn-primary">Mostrar</button>
+									</div>
+								</form>
+							</div>
+							{% if len(dataframe) > 0 %}
+							<div class="row ">
+								<div class="table-responsive-xl text-nowrap ">
+								  	<table class="table table-striped w-auto">
+									    <thead>
+									    <tr>
+										    <th class="th-sm ">#</th>
+									    	{% for titulo in dataframe.columns  %}
+										    <th class="th-sm ">{{titulo}}</th>
+										    {% endfor %}
+									    </tr>
+									    </thead>
+									    <tbody>
+									    {% for n,fila in enumerate(dataframe.values) %}
+									    <tr>
+										    <td scope="row">{{n+1}}</td>
+									    	{% for item in fila %}
+										    <td>{{item}}</td>	
+										    {%endfor%}
+									    </tr>
+									    {% endfor %}
+									    </tbody>
+								  	</table>
+								</div>
+							</div>
+							{% endif %}
+						</div>
+					</div>
+				{% elif vista == 4 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Filtrar por Columnas</h3>
+						</div>
+						<div class="panel-body">
+							<div class="row">
+								<form class="md-form" action="{{url_for('consultas_csv', action = 3)}}" method="POST" >
+									<div class="col-xs-7 form-group">
+										<label>Seleccionar Columnas para Filtar</label>
+										<select multiple="multiple" name="columnas" id="columnas"class="form-control">
+											{% for titulo in dataframe%}
+											<option>{{titulo}}</option>
+											{%endfor%}
+										</select>
+									</div>
+									<div class="col-xs-4 form-group pull-right">
+										<button type="submit" value="submit" class="btn btn-primary">Mostrar</button>
+									</div>
+								</form>
+							</div>
+							{% if len(dataframe_filt) > 0 %}
+							<div class="row ">
+								<div class="table-responsive-xl text-nowrap ">
+								  	<table class="table table-striped w-auto">
+									    <thead>
+									    <tr>
+										    <th class="th-sm ">#</th>
+									    	{% for titulo in dataframe_filt.columns  %}
+										    <th class="th-sm ">{{titulo}}</th>
+										    {% endfor %}
+									    </tr>
+									    </thead>
+									    <tbody>
+									    {% for n,fila in enumerate(dataframe_filt.values) %}
+									    <tr>
+										    <td scope="row">{{n+1}}</td>
+									    	{% for item in fila %}
+										    <td>{{item}}</td>	
+										    {%endfor%}
+									    </tr>
+									    {% endfor %}
+									    </tbody>
+								  	</table>
+								</div>
+							</div>
+							{% endif %}
+						</div>
+					</div>
+				{% elif vista == 5 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Filtrar por valor de Columna</h3>
+						</div>
+						<div class="panel-body">
+							<div class="row">
+								<form class="md-form" action="{{url_for('consultas_csv', action = 4)}}" method="POST" >
+									<div class="col-xs-4 form-group">
+										<label>Seleccionar columna </label>
+										<select name="columna"class="form-control">
+											{% for titulo in dataframe%}
+												<option>{{titulo}}</option>
+											{%endfor%}
+										</select>
+									</div>
+									<div class="col-xs-4 form-group ">
+										<label>Valor </label>
+										<input type="text" class="form-control" name="valor_filtro" placeholder="Valor">
+									</div>
+									<div class="col-xs-4  form-group pull-right">
+										<button type="submit" value="submit" class="btn btn-primary">Mostrar</button>
+									</div>
+								</form>
+							</div>
+							{% if len(dataframe_filt) > 0 %}
+							<div class="row ">
+								<div class="table-responsive-xl text-nowrap ">
+								  	<table class="table table-striped w-auto">
+									    <thead>
+									    <tr>
+										    <th class="th-sm ">#</th>
+									    	{% for titulo in dataframe_filt.columns  %}
+										    <th class="th-sm ">{{titulo}}</th>
+										    {% endfor %}
+									    </tr>
+									    </thead>
+									    <tbody>
+									    {% for n,fila in enumerate(dataframe_filt.values) %}
+									    <tr>
+										    <td scope="row">{{n+1}}</td>
+									    	{% for item in fila %}
+										    <td>{{item}}</td>	
+										    {%endfor%}
+									    </tr>
+									    {% endfor %}
+									    </tbody>
+								  	</table>
+								</div>
+							</div>
+							{% endif %}
+						</div>
+					</div>
+				{% elif vista == 6 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Ordenar Por</h3>
+						</div>
+						<div class="panel-body">
+							<div class="row">
+								<form class="md-form" action="{{url_for('consultas_csv', action = 5)}}" method="POST" >
+									<div class="col-xs-4 form-group">
+										<label>Seleccionar columna </label>
+										<select name="columna"class="form-control">
+											{% for titulo in dataframe%}
+												<option>{{titulo}}</option>
+											{%endfor%}
+										</select>
+									</div>
+									<div class="col-xs-4 form-group">
+										<label>Seleccionar Ordén </label>
+										<select name="orden"class="form-control">
+											<option selected="selected" value="asd">Ascendente</option>
+											<option value="des">Descendente</option>
+										</select>
+									</div>
+									<div class="col-xs-4  form-group pull-right">
+										<button type="submit" value="submit" class="btn btn-primary">Mostrar</button>
+									</div>
+								</form>
+							</div>
+							{% if len(dataframe_orde) > 0 %}
+							<div class="row ">
+								<div class="table-responsive-xl text-nowrap ">
+								  	<table class="table table-striped w-auto">
+									    <thead>
+									    <tr>
+										    <th class="th-sm ">#</th>
+									    	{% for titulo in dataframe_orde.columns  %}
+										    <th class="th-sm ">{{titulo}}</th>
+										    {% endfor %}
+									    </tr>
+									    </thead>
+									    <tbody>
+									    {% for n,fila in enumerate(dataframe_orde.values) %}
+									    <tr>
+										    <td scope="row">{{n+1}}</td>
+									    	{% for item in fila %}
+										    <td>{{item}}</td>	
+										    {%endfor%}
+									    </tr>
+									    {% endfor %}
+									    </tbody>
+								  	</table>
+								</div>
+							</div>
+							{% endif %}
+						</div>
+					</div>
+				{% endif %}
+			</article>
+			</div>
+			<div class="col-lg-3">
+				<aside role="complementary" itemscope="" itemtype="https://schema.org/WPSideBar">
+					<section>
+					<h3 class="sin_margenes">Consultas</h3><br>
+					<div class="list-group">
+						<a href="{{url_for('consultas_csv')}}" class="list-group-item {% if vista == 1 %} active {% endif %}">
+						Inicio Consultas
+						</a>
+						<a href="{{url_for('consultas_csv',action = 1)}}" class="list-group-item {% if vista == 2 %} active {% endif %}">
+						Ver Columnas
+						</a>
+						<a href="{{url_for('consultas_csv',action = 2)}}" class="list-group-item {% if vista == 3 %} active {% endif %}">Ver Filas</a>
+						<a href="{{url_for('consultas_csv',action = 3)}}" class="list-group-item {% if vista == 4 %} active {% endif %}">Filtrar por Columnas</a>
+						<a href="{{url_for('consultas_csv',action = 4)}}" class="list-group-item {% if vista == 5 %} active {% endif %}">Filtrar por valor de Columna</a>
+						<a href="{{url_for('consultas_csv',action = 5)}}" class="list-group-item {% if vista == 6 %} active {% endif %}">Ordenar Por</a>
+					</div>
+					</section>
+				</aside>
+				<ul class="pager">
+					<!--
+					<li><a href="{{url_for('consultas_csv')}}">Inicio Limpieza</a></li>
+				-->
+					<li><a href="{{url_for('action')}}">Home</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+{% endblock %}

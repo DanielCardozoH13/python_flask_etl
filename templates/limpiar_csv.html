@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}
+    ETL | csv limpieza
+{% endblock %}
+
+{% block content %}
+	<div class="container">
+		<div class="row limpieza">
+			<div class="col-12">
+				<section class="headline">
+					<h1 class="title margen_botton_titulo">Limpieza csv</h1>
+				</section>
+			</div>
+			<div class="col-lg-9">
+			<article>
+				{% if vista == 1%}
+					<div class="container tabla">
+						{% if len(dataframe.columns) > 0 %}
+						    <div class="panel panel-info" id="panel_cantidad_datos">
+						      <!-- Default panel contents -->
+						      <div class="panel-heading">{{session['data_csv']}}</div>
+
+						      <!-- Table -->
+						      <table class="table" id="tabla_cantidad_registros">
+						        <thead>
+						          <tr>
+						          	<th>#</th>
+						            <th>Columna</th>
+						            <th>Cantidad datos</th>
+						          </tr>
+						        </thead>
+						        <tbody>
+						            {% for i,columna in enumerate(dataframe.head()) %}
+						                <tr>
+						                	{% if columna != "Unnamed: 0"%}
+							                	<th scope="row">{{i}}</th>
+							                    <th scope="row">{{columna}}</th>
+							                    <td scope="row">{{dataframe[columna].count()}}</td>
+						                    {% endif%}
+						                </tr>  
+						            {% endfor %}
+						        </tbody>
+						      </table>
+						    </div>
+					    {% else %}
+			        		<h3>El conjunto de datos no tiene columnas para mostrar</h3>
+			        	{% endif %}
+					</div>
+				{% elif vista == 2 %}
+					<div class="panel {% if hay_NULL == True %} panel-danger {% else %} panel-success {% endif %}">
+						<div class="panel-heading">
+							<h3 class="panel-title">{% if hay_NULL == True %}Precaución{% endif %}</h3>
+						</div>
+						<div class="panel-body">
+							{% if hay_NULL == True %}
+								<div class="row">
+									<div class="col-md-9">
+										<p> Realizar está acción eliminara la siguiente cantida de registros por columna: </p>
+									</div>
+									<div class="col-md-2">
+										<p><a href="{{url_for('limpiar_csv', action = 1, eliminar = True)}}" class="btn btn-danger btn-sm" role="button">Borrar Registros</a></p>
+									</div>
+								</div>
+								<br>
+								<table class="table" id="tabla_cantidad_registros">
+							        <thead>
+							          <tr>
+							            <th>Columna</th>
+							            <th>Cantidad datos</th>
+							          </tr>
+							        </thead>
+							        <tbody>
+							            {% for columna in dataframe.index %}
+							                <tr>
+							                    <th scope="row">{{columna}}</th>
+							                    <td scope="row">{{dataframe[columna].count()}}</td>
+							                </tr>  
+							            {% endfor %}
+							        </tbody>
+						      	</table>
+					      	{% else %}
+				        		<h3>No hay registros con campos en blanco</h3>
+				        	{% endif %}
+						</div>
+					</div>
+				{% elif vista == 3 %}
+					<div class="panel {% if hay_NULL == True %} panel-info {% else %} panel-success {% endif %}">
+						<div class="panel-heading">
+							<h3 class="panel-title">Gestión de Columnas con campos en blanco</h3>
+						</div>
+						<div class="panel-body">
+							{% if len(dataframe.columns) > 0 %}
+								{% if hay_NULL %}
+									<div class="row">
+										<div class="col-md-9">
+											<p> Despliegue la lista y seleccione la acción a aplicar los campos en blanco de la columna identificada </p>
+										</div>
+									</div>
+									<br>
+									{% for columna in dataframe.columns %}
+										<div class="row">
+										  	<div class="col-lg-12">
+										  		<form class="md-form" action="{{url_for('limpiar_csv', action = 2)}}" method="POST" id="{{columna}}">
+										    	<div class="input-group">
+										    		<span class="input-group-addon">{{columna}}</span>
+										    		<input type="hidden" name="columna" value="{{columna}}">
+										      		<div class="input-group-btn ancho">
+											      		<select name="accion" class="form-control">
+											      		  	<option value="O">Sin Acción</option>
+											      		  	<option value="1">Cambiar a Texto</option>
+											      		  	<option value="2">Cambiar a 0</option>
+											      		  	<option value="3">Eliminar</option>
+											      		</select>
+										      		</div>
+
+										      		<input type="text" name="new_texto" class="form-control" placeholder="Cambiar campos vacios por este Texto">
+
+										      		<div class="input-group-btn">
+											      		<button type="submit" class="btn btn-warning" value="send" tabindex="-1">Aplicar</button>
+										      		</div>
+										    	</div>
+								    			</form>
+										 	</div>
+										</div>
+						            {% endfor %}
+						      	{% else %}
+					        		<h3>No hay registros con campos blanco</h3>
+					        	{% endif %}
+				        	{% else %}
+				        		<h3>No hay registros con campos en blanco</h3>
+				        	{% endif %}
+						</div>
+					</div>
+				{% elif vista == 4 %}
+					<div class="panel panel-info">
+						<div class="panel-heading">
+							<h3 class="panel-title">Seleccionar columnas para nuevo conjunto de datos</h3>
+						</div>
+						<div class="panel-body">
+							{% if len(dataframe) > 0 %}
+								<form class="md-form" action="{{url_for('limpiar_csv', action = 3)}}" method="POST" id="datos_nueva_dataset">
+									<div class="row">
+										<div class="col-md-9">
+											<p>Seleccione las columnas con las que quiere crear el nuevo conjunto de datos</p>
+										</div>
+										<div class="col-md-3">
+											<button type="submit" class="btn btn-warning btn-sm" target="blank" value="send">Aplicar</button>
+										</div>
+									</div>
+									<br>
+									<div class="row">
+										<div class="col-md-12">
+											<div class="col-md-4">
+												<label class="radio-inline">
+												  	<input type="radio" name="accion_nuevo" value="editar"> Editar Actual
+												</label>
+											</div>
+											<div class="col-md-4">
+												<label class="radio-inline">
+												  	<input type="radio" name="accion_nuevo" checked value="descargar"> Descargar
+												</label>
+											</div>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-md-12">
+										    <ul class="list-group">
+										        {% for titulo in dataframe %}
+										        	{% if 'Unnamed' not in titulo %}
+											            <li class="list-group-item">
+											                <span class="badge"><input type="checkbox" aria-label="Checkbox para columna" name="{{titulo}}" value="{{titulo}}"></span>
+											                {{titulo}}
+											            </li>  
+											        {% endif %}
+										        {% endfor %}
+										    </ul>
+										</div>
+									</div>
+						        </form>
+				        	{% else %}
+				        		<h3>No hay columnas para mostrar</h3>
+				        	{% endif %}
+				        	
+				        </div>
+					</div>
+				{% elif vista == 5 %}
+					<div class="panel panel-danger">
+						<div class="panel-heading">
+							<h3 class="panel-title">Eliminar Columnas</h3>
+						</div>
+						<div class="panel-body">
+							{% if len(dataframe.columns) > 0 %}
+								<form class="md-form" action="{{url_for('limpiar_csv', action = 4)}}" method="POST" id="datos_eliminar_col">
+									<div class="row">
+										<div class="col-md-8">
+											<p> Realizar está acción eliminara la siguiente columna: </p>
+										</div>
+										<div class="col-md-2">
+											<button type="submit" class="btn btn-danger btn-sm" value="send">Borrar</button>
+										</div>
+									</div>
+									<div class="col-md-6">
+									    <ul class="list-group">
+									        {% for titulo in dataframe.columns %}
+									        	{% if 'Unnamed' not in titulo %}
+										            <li class="list-group-item">
+										                <span class="badge"><input type="radio" aria-label="Checkbox para columna" name="columna_eliminar" value="{{titulo}}"></span>
+										                {{titulo}}
+										            </li>  
+										        {% endif %}
+									        {% endfor %}
+									    </ul>
+									</div>
+								</form>
+							{% else %}
+								<h3>El conjunto de datos no tiene columnas para mostrar</h3>
+							{% endif%}
+						</div>
+					</div>
+				{% elif vista == 6 %}
+					<div class="panel panel-info">
+						<div class="panel-heading">
+							<h3 class="panel-title">Renombrar Columnas</h3>
+						</div>
+						<div class="panel-body">
+							{% if len(dataframe.columns) > 0 %}
+								<form class="md-form" action="{{url_for('limpiar_csv', action = 5)}}" method="POST" id="datos_renombrar_columns">
+									<div class="row">
+										<div class="col-md-8">
+											<p> Se renombra la columna indicada por el nombre introducido en el campo de texto </p>
+										</div>
+										<div class="col-md-2">
+											<button type="submit" class="btn btn-primary " value="send">Renombrar</button>
+										</div>
+									</div>
+									<div class="col-md-12">
+								        {% for titulo in dataframe.columns %}
+								        	{% if 'Unnamed' not in titulo %}
+									        	<div class="row">
+									    			<div class="input-group">
+									    			  	<span class="input-group-addon">{{titulo}}</span>
+									    			  	<input type="text" class="form-control" name="{{titulo}}" placeholder="Renombrar" value="{{titulo}}">
+									    			</div>
+									    		</div>
+									        {% endif %}
+								        {% endfor %}
+									</div>
+								</form>
+							{% else %}
+								<h3>El conjunto de datos no tiene columnas para mostrar</h3>
+							{% endif%}
+						</div>
+					</div>
+				{% endif %}
+			</article>
+			</div>
+			<div class="col-lg-3">
+				<aside role="complementary" itemscope="" itemtype="https://schema.org/WPSideBar">
+					<section>
+					<h3 class="sin_margenes">Opciones de limpieza</h3><br>
+					<div class="list-group">
+						<a href="{{url_for('limpiar_csv')}}" class="list-group-item {% if vista == 1 %} active {% endif %}">
+						Inicio limpieza
+						</a>
+						<a href="{{url_for('limpiar_csv',action = 1)}}" class="list-group-item {% if vista == 2 %} active {% endif %}">
+						Eliminar todos los registros donde halla un campo vacio
+						</a>
+						<a href="{{url_for('limpiar_csv',action = 2)}}" class="list-group-item {% if vista == 3 %} active {% endif %}">Seleccionar columna y cambiar campos vacios por un dato ingresado</a>
+						<a href="{{url_for('limpiar_csv',action = 3)}}" class="list-group-item {% if vista == 4 %} active {% endif %}">Seleccionar columnas y crear nuevo conjunto de datos</a>
+						<a href="{{url_for('limpiar_csv',action = 4)}}" class="list-group-item {% if vista == 5 %} active {% endif %}">Eliminar columnas</a>
+						<a href="{{url_for('limpiar_csv',action = 5)}}" class="list-group-item {% if vista == 6 %} active {% endif %}">Renombrar columnas</a>
+					</div>
+					</section>
+				</aside>
+				<ul class="pager">
+					<!--
+					<li><a href="{{url_for('limpiar_csv')}}">Inicio Limpieza</a></li>
+				-->
+					<li><a href="{{url_for('action')}}">Home </a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+{% endblock %}

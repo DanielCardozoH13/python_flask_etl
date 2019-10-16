@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}
+    ETL | csv 
+{% endblock %}
+
+{% block content %}
+	<div class="container text-center paneles" >
+	    <div class="row">
+	      <div class="col-sm-6 col-md-4">
+	        <div class="thumbnail">
+	          <div class="caption">
+	            <h3>Limpiar Datos</h3>
+	            <p>Permite realizar 5 tipos diferente de limpieza sobre el conjunto de datos subidos a la aplicación.</p>
+	            <p><a href="{{url_for('limpiar_csv')}}" class="btn btn-primary" role="button">Limpiar</a>
+	          </div>
+	        </div>
+	      </div>
+	      <div class="col-sm-6 col-md-4">
+	        <div class="thumbnail">
+	          <div class="caption">
+	            <h3>Consultar Datos</h3>
+	            <p>Permite realizar 5 diferentes consultas sobre el data set subido.</p>
+	            <p><a href="{{url_for('consultas_csv')}}" class="btn btn-primary" role="button">Consultar</a>
+	          </div>
+	        </div>
+	      </div>
+	      <div class="col-sm-6 col-md-4">
+	        <div class="thumbnail">
+	          <div class="caption">
+	            <h3>Gráficar</h3>
+	            <p>Permite realizar gráficas con el conjunto de datos subidos a la aplicación.</p>
+	            <p><a href="{{url_for('graficas')}}" class="btn btn-primary" role="button">Gráficar</a>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+	    <div class="row">
+	      <div class="col-sm-6 col-md-4">
+	        <div class="thumbnail">
+	          <div class="caption">
+	            <h3>Exportar</h3>
+	            <p>Permite convertir y descargar el documento subido.</p>
+	            <p><a href="{{url_for('exportar_dataset', tipo = 1)}}" class="btn btn-primary" target="blank" role="button">.csv</a> <a href="{{url_for('exportar_dataset', tipo = 2)}}" class="btn btn-primary" target = "blank"role="button">.xslx</a> 
+	          </div>
+	        </div>
+	      </div>
+	      <div class="col-sm-6 col-md-4">
+	        <div class="thumbnail">
+	          <div class="caption">
+	            <h3>Consulta Especializada</h3>
+	            <p>Permite relizar consultas especialziadas, usando la sintexis de python y su libreria Pandas.</p>
+	            <p><a href="{{url_for('especializada')}}" class="btn btn-primary" role="button">Especializada</a>
+	          </div>
+	        </div>
+	      </div>
+	      <div class="col-sm-6 col-md-4">
+	        <div class="thumbnail">
+	          <div class="caption">
+	            <h3>Cambiar Datos</h3>
+	            <p>Permite eliminar y o cambiar el conjunto de datos subidos.</p>
+	            <p><a href="{{url_for('cambiar_dataset')}}" class="btn btn-danger" role="button">Cambiar</a>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+{% endblock %}

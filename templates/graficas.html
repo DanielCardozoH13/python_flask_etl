@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+
+{% block title %}
+    ETL | csv gráficas
+{% endblock %}
+
+{% block content %}
+	<div class="container">
+		<div class="row limpieza">
+			<div class="col-12">
+				<section class="headline">
+					<h1 class="title margen_botton_titulo">Gráficas csv</h1>
+				</section>
+			</div>
+			<div class="col-lg-9">
+			<article>
+				{% if vista == 1%}
+					{% if len(dataframe) > 0 %}
+					    <div class="panel panel-primary">
+						    <div class="panel-heading">{{session['data_csv']}} - (<span>{{len(dataframe)}} Registros)</span></div>
+						    <div class="panel-body">
+						        <div class="row ">
+						        	<div class="table-responsive text-nowrap ">
+						        	  	<table class="table table-striped w-auto">
+						        		    <thead>
+						        		    <tr class="row col-md-12">
+						        		    	{% for titulo in dataframe.columns  %}
+						        			    <th class="col-md-1">{{titulo}}</th>
+						        			    {% endfor %}
+						        		    </tr>
+						        		    </thead>
+						        		    <tbody>
+						        		    {% for fila in dataframe[:8].values %}
+						        		    <tr class="row col-md-12">
+						        		    	{% for item in fila %}
+						        			    <td class="col-5">{{item}}</td>	
+						        			    {%endfor%}
+						        		    </tr>
+						        		    {% endfor %}
+						        		    </tbody>
+						        	  	</table>
+						        	</div>
+						        </div>
+						    </div>
+					    </div>
+		        	{% endif %}
+				{% elif vista == 2 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Gráfica Lineal</h3>
+						</div>
+						<div class="panel-body">
+							{% if len(path_grafica) == 0 %}
+								<form class="md-form" action="{{url_for('graficas', action = 1)}}" method="POST" id="datos_grafica">
+								    <div class="row col-lg-12">
+								        <label>Seleccionar Valores para eje X</label>
+								        <select  name="ejeX" class="form-control">
+								        	{% for titulo in dataframe%}
+								        	<option>{{titulo}}</option>
+								        	{%endfor%}
+								        </select>
+								    </div>
+								    <div class="row col-lg-12">
+								        <label>Seleccionar Valores para eje Y</label>
+								        <select  name="ejeY" class="form-control">
+								        	{% for titulo in dataframe%}
+								        	<option>{{titulo}}</option>
+								        	{%endfor%}
+								        </select>
+								    </div>
+								    <div class="row col-lg-12">
+							            <label>Cantidad de Registros</label>
+							            <div class="input-group">
+							                <input type="number" class="form-control" placeholder="Cantidad de registros" aria-describedby="basic-addon2" name="cantidad_registros">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: 10</span>
+							            </div>
+								    </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Gráfica</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre de la gráfica" aria-describedby="basic-addon2" name="titulo_grafica">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Gráfica</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Eje X</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre del Eje X" aria-describedby="basic-addon2" name="titulo_ejex">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje X</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Eje Y</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre del Eje Y" aria-describedby="basic-addon2" name="titulo_ejey">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje Y</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Etiqueta Leyenda</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Leyenda de la Gráfica" aria-describedby="basic-addon2" name="legend">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Función de Utilidad</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12 ">
+							        	<br><input type="hidden" name="tipo_grafica" value="lineal">
+							            <button type="submit" class="btn btn-primary mb-3 center-block" value="send">Gráficar</button>
+							        </div>
+								</form>
+							{% else %}
+								<div class="row text-center">
+									<div class="col-lg-12">
+									    <a href="{{url_for('enviar_grafica')}}" class=" btn btn-lg btn-success" target = "blank"role="button">Ver Gráfica</a>
+									    <a href="{{url_for('graficas', action = 1)}}" class="btn btn-lg btn-danger col-md-offset-1" role="button">Volver Atrás</a>
+								    </div>
+								</div>
+							{% endif%}
+						</div>
+					</div>
+				{% elif vista == 3 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Gráfica Columnas</h3>
+						</div>
+						<div class="panel-body">
+							{% if len(path_grafica) == 0 %}
+								<form class="md-form" action="{{url_for('graficas', action = 2)}}" method="POST" id="datos_grafica">
+								    <div class="row col-lg-12">
+								        <label>Seleccionar Valores para eje X</label>
+								        <select  name="ejeX" class="form-control">
+								        	{% for titulo in dataframe%}
+								        		{% if str(dataframe[titulo].dtype) != 'object'%}
+								        			<option>{{titulo}}</option>
+								        		{% endif %}
+								        	{%endfor%}
+								        </select>
+								    </div>
+								    <div class="row col-lg-12">
+								        <label>Seleccionar Valores para eje Y</label>
+								        <select  name="ejeY" class="form-control">
+								        	{% for titulo in dataframe%}
+								        	<option>{{titulo}}</option>
+								        	{%endfor%}
+								        </select>
+								    </div>
+								    <div class="row col-lg-12">
+							            <label>Cantidad de Registros</label>
+							            <div class="input-group">
+							                <input type="number" class="form-control" placeholder="Cantidad de registros" aria-describedby="basic-addon2" name="cantidad_registros">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: 10</span>
+							            </div>
+								    </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Gráfica</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre de la gráfica" aria-describedby="basic-addon2" name="titulo_grafica">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Gráfica</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Eje X</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre del Eje X" aria-describedby="basic-addon2" name="titulo_ejex">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje X</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Eje Y</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre del Eje Y" aria-describedby="basic-addon2" name="titulo_ejey">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje Y</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Etiqueta Leyenda</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Leyenda de la Gráfica" aria-describedby="basic-addon2" name="legend">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Función de Utilidad</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12 ">
+							            <button type="submit" class="btn btn-primary mb-3 center-block" value="send">Gráficar</button>
+							        </div>
+								</form>
+							{% else %}
+								<div class="row text-center">
+									<div class="col-lg-12">
+									    <a href="{{url_for('enviar_grafica')}}" class=" btn btn-lg btn-success" target = "blank"role="button">Ver Gráfica</a>
+									    <a href="{{url_for('graficas', action = 2)}}" class="btn btn-lg btn-danger col-md-offset-1" role="button">Volver Atrás</a>
+								    </div>
+								</div>
+							{% endif%}
+						</div>
+					</div>
+				{% elif vista == 4 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Gráfica Barras</h3>
+						</div>
+						<div class="panel-body">
+							{% if len(path_grafica) == 0 %}
+								<form class="md-form" action="{{url_for('graficas', action = 3)}}" method="POST" >
+								    <div class="row col-lg-12">
+								        <label>Seleccionar Valores para eje Y</label>
+								        <select  name="ejeX" class="form-control">
+								        	{% for titulo in dataframe%}
+								        		{% if str(dataframe[titulo].dtype) != 'object'%}
+								        			<option>{{titulo}}</option>
+								        		{% endif %}
+								        	{%endfor%}
+								        </select>
+								    </div>
+								    <div class="row col-lg-12">
+								        <label>Seleccionar Valores para eje X</label>
+								        <select  name="ejeY" class="form-control">
+								        	{% for titulo in dataframe%}
+								        	<option>{{titulo}}</option>
+								        	{%endfor%}
+								        </select>
+								    </div>
+								    <div class="row col-lg-12">
+							            <label>Cantidad de Registros</label>
+							            <div class="input-group">
+							                <input type="number" class="form-control" placeholder="Cantidad de registros" aria-describedby="basic-addon2" name="cantidad_registros">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: 10</span>
+							            </div>
+								    </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Gráfica</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre de la gráfica" aria-describedby="basic-addon2" name="titulo_grafica">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Gráfica</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Eje X</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre del Eje X" aria-describedby="basic-addon2" name="titulo_ejex">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje X</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Eje Y</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre del Eje Y" aria-describedby="basic-addon2" name="titulo_ejey">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje Y</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Etiqueta Leyenda</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Leyenda de la Gráfica" aria-describedby="basic-addon2" name="legend">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Función de Utilidad</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12 ">
+							            <button type="submit" class="btn btn-primary mb-3 center-block" value="send">Gráficar</button>
+							        </div>
+								</form>
+							{% else %}
+								<div class="row text-center">
+									<div class="col-lg-12">
+									    <a href="{{url_for('enviar_grafica')}}" class=" btn btn-lg btn-success" target = "blank"role="button">Ver Gráfica</a>
+									    <a href="{{url_for('graficas', action = 3)}}" class="btn btn-lg btn-danger col-md-offset-1" role="button">Volver Atrás</a>
+								    </div>
+								</div>
+							{% endif%}
+						</div>
+					</div>
+				{% elif vista == 5 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Gráfica Histograma</h3>
+						</div>
+						<div class="panel-body">
+							{% if len(path_grafica) == 0 %}
+								<form class="md-form" action="{{url_for('graficas', action = 4)}}" method="POST" >
+								    <div class="row col-lg-12">
+								        <label>Seleccionar Valores Para la Grafica</label>
+								        <select  name="ejeX" class="form-control">
+								        	{% for titulo in dataframe%}
+								        		{% if str(dataframe[titulo].dtype) != 'object'%}
+								        			<option>{{titulo}}</option>
+								        		{% endif %}
+								        	{%endfor%}
+								        </select>
+								    </div>
+								    <div class="row col-lg-12">
+							            <label>Cantidad de Registros</label>
+							            <div class="input-group">
+							                <input type="number" class="form-control" placeholder="Cantidad de registros" aria-describedby="basic-addon2" name="cantidad_registros">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: 10</span>
+							            </div>
+								    </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Gráfica</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre de la gráfica" aria-describedby="basic-addon2" name="titulo_grafica">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Gráfica</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Eje X</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre del Eje X" aria-describedby="basic-addon2" name="titulo_ejex">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje X</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Eje Y</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre del Eje Y" aria-describedby="basic-addon2" name="titulo_ejey">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Eje Y</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12">
+							            <label>Etiqueta Leyenda</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Leyenda de la Gráfica" aria-describedby="basic-addon2" name="legend">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Función de Utilidad</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12 ">
+							        	<br><button type="submit" class="btn btn-primary mb-3 center-block" value="submit">Gráficar</button>
+							        </div>
+								</form>
+							{% else %}
+								<div class="row text-center">
+									<div class="col-lg-12">
+									    <a href="{{url_for('enviar_grafica')}}" class=" btn btn-lg btn-success" target = "blank"role="button">Ver Gráfica</a>
+									    <a href="{{url_for('graficas', action = 4)}}" class="btn btn-lg btn-danger col-md-offset-1" role="button">Volver Atrás</a>
+								    </div>
+								</div>
+							{% endif%}
+						</div>
+					</div>
+				{% elif vista == 6 %}
+					<div class="panel panel-primary">
+						<div class="panel-heading">
+							<h3 class="panel-title">Gráfica Porcentaje</h3>
+						</div>
+						<div class="panel-body">
+							{% if len(path_grafica) == 0 %}
+								<form class="md-form" action="{{url_for('graficas', action = 5)}}" method="POST" >
+								    <div class="row col-lg-12">
+								        <label>Seleccionar Valores Para Gráfica X</label>
+								        <select  name="ejeX" class="form-control">
+								        	{% for titulo in dataframe%}
+								        			<option>{{titulo}}</option>
+								        	{%endfor%}
+								        </select>
+								    </div>
+								    <div class="row col-lg-12">
+								        <label>Seleccionar Valores Para Gráfica Y</label>
+								        <select  name="ejeY" class="form-control">
+								        	{% for titulo in dataframe%}
+								        	<option>{{titulo}}</option>
+								        	{%endfor%}
+								        </select>
+								    </div>
+								    <div class="row col-lg-12">
+							            <label>Cantidad de Registros</label>
+							            <div class="input-group">
+							                <input type="number" class="form-control" placeholder="Cantidad de registros" aria-describedby="basic-addon2" name="cantidad_registros">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: 10</span>
+							            </div>
+								    </div>
+							        <div class="row col-lg-12">
+							            <label>Titulo Gráfica</label>
+							            <div class="input-group">
+							                <input type="text" class="form-control" placeholder="Nombre de la gráfica" aria-describedby="basic-addon2" name="titulo_grafica">
+							                <span class="input-group-addon" id="basic-addon2">ejemplo: Mi Gráfica</span>
+							            </div>
+							        </div>
+							        <div class="row col-lg-12 ">
+							        	<br><button type="submit" class="btn btn-primary mb-3 center-block" value="submit">Gráficar</button>
+							        </div>
+								</form>
+							{% else %}
+								<div class="row text-center">
+									<div class="col-lg-12">
+									    <a href="{{url_for('enviar_grafica')}}" class=" btn btn-lg btn-success" target = "blank"role="button">Ver Gráfica</a>
+									    <a href="{{url_for('graficas', action = 5)}}" class="btn btn-lg btn-danger col-md-offset-1" role="button">Volver Atrás</a>
+								    </div>
+								</div>
+							{% endif%}
+						</div>
+					</div>
+				{% endif %}
+			</article>
+			</div>
+			<div class="col-lg-3">
+				<aside role="complementary" itemscope="" itemtype="https://schema.org/WPSideBar">
+					<section>
+					<h3 class="sin_margenes">Tipo de Gráfica</h3><br>
+					<div class="list-group">
+						<a href="{{url_for('graficas')}}" class="list-group-item {% if vista == 1 %} active {% endif %}">Inicio</a>
+						<a href="{{url_for('graficas',action = 1)}}" class="list-group-item {% if vista == 2 %} active {% endif %}">Lineal</a>
+						<a href="{{url_for('graficas',action = 2)}}" class="list-group-item {% if vista == 3 %} active {% endif %}">Columnas</a>
+						<a href="{{url_for('graficas',action = 3)}}" class="list-group-item {% if vista == 4 %} active {% endif %}">Barras</a>
+						<a href="{{url_for('graficas',action = 4)}}" class="list-group-item {% if vista == 5 %} active {% endif %}">Histograma</a>
+						<a href="{{url_for('graficas',action = 5)}}" class="list-group-item {% if vista == 6 %} active {% endif %}">Porcentaje</a>
+					</div>
+					</section>
+					<ul class="pager">
+						<li><a href="{{url_for('action')}}">Home</a></li>
+					</ul>
+				</aside>
+			</div>
+		</div>
+	</div>
+{% endblock %}

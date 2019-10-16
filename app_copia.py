@@ -3,8 +3,6 @@ import os, io, datetime, time, random, matplotlib, math
 import pandas as pd
 import numpy as np
 matplotlib.rcParams.update({'font.size': 15}) 
-#import models as algorithms
-#import plotfunctions as plotfun
 import matplotlib.pyplot as plt
 #from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 #from matplotlib.figure import Figure
@@ -530,7 +528,6 @@ def cambiar_dataset():
 	session.pop('data_user', None)
 	return csv()
 
-
 def guardar_grafica(ruta_carpeta, fig):
 	if not os.path.isdir(ruta_carpeta):
 		os.mkdir(ruta_carpeta)
@@ -698,7 +695,6 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
         result = guardar_grafica(path, f)
         plt.close()
         return result
-
 
 
 if __name__ == '__main__':

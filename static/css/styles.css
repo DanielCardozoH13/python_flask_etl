@@ -21,3 +21,36 @@ body {
     margin: 0 -15px 15px;
 }
 
+.paneles{
+	padding: 45px 30px 20px 45px;
+}
+
+.limpieza{
+	margin-right: 5%;
+    margin-left: 5%;
+}
+
+.sin_margenes{
+	margin-top: 0;
+    margin-bottom: 0;
+}
+
+table{
+  table-layout: fixed;
+}
+
+#tabla_cantidad_registros th{
+  overflow: auto;
+}
+
+#panel_cantidad_datos{
+	width: 60%;
+}
+
+.margen_botton_titulo{
+	margin-bottom: 4%;
+}
+
+.ancho{
+	width: 22%;
+}
