@@ -35,8 +35,8 @@ body {
     margin-bottom: 0;
 }
 
-table{
-  table-layout: fixed;
+.table {
+  table-layout: auto !important;
 }
 
 #tabla_cantidad_registros th{

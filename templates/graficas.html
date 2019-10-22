@@ -20,8 +20,8 @@
 						    <div class="panel-heading">{{session['data_csv']}} - (<span>{{len(dataframe)}} Registros)</span></div>
 						    <div class="panel-body">
 						        <div class="row ">
-						        	<div class="table-responsive text-nowrap ">
-						        	  	<table class="table table-striped w-auto">
+                      <div class="table-responsive">
+      								  	<table class="table table-striped">
 						        		    <thead>
 						        		    <tr class="row col-md-12">
 						        		    	{% for titulo in dataframe.columns  %}
@@ -33,7 +33,7 @@
 						        		    {% for fila in dataframe[:8].values %}
 						        		    <tr class="row col-md-12">
 						        		    	{% for item in fila %}
-						        			    <td class="col-5">{{item}}</td>	
+						        			    <td class="col-5">{{item}}</td>
 						        			    {%endfor%}
 						        		    </tr>
 						        		    {% endfor %}
