@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="container text-center">
-        <h2 align='center'>Seleccione un conjunto de datos ('.csv', '.xlsx' o '.db'</h2><br><br>
+        <h2 align='center'>Seleccione un conjunto de datos ('.csv', '.xlsx' o '.db')</h2><br><br>
         <form class="md-form" action="{{url_for('action')}}" method="POST" enctype = "multipart/form-data">
             <div class="row">
                 <div class="col-md-2">
@@ -30,5 +30,5 @@
             </div>
         </form>
     </div>
-    
+
 {% endblock %}

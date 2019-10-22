@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    ETL | csv consultas
+    ETL | consultas
 {% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
 		<div class="row limpieza">
 			<div class="col-12">
 				<section class="headline">
-					<h1 class="title margen_botton_titulo">Consultas csv</h1>
+					<h1 class="title margen_botton_titulo">Consultas</h1>
 				</section>
 			</div>
 			<div class="col-lg-9">
@@ -20,15 +20,15 @@
 						    <div class="panel-heading">{{session['data_csv']}}</div>
 						    <div class="panel-body">
 						        <h2>
-						            Cantidad de Columnas 
+						            Cantidad de Columnas
 						            <span class="label label-default">{{len(dataframe.columns)}}</span>
 						        </h2>
 						        <h2>
-						            Cantidad de Filas 
+						            Cantidad de Filas
 						            <span class="label label-default">{{ len(dataframe.index) 	}}</span>
 						        </h2>
 						        <h2>
-						            Cantidad de Valores NULL 
+						            Cantidad de Valores NULL
 						            <span class="label label-default">{{dataframe.isna().sum().sum() }}</span>
 						        </h2>
 						    </div>
@@ -49,8 +49,8 @@
 							</div>
 							{% if len(dataframe_col) > 0 %}
 							<div class="row ">
-								<div class="table-responsive ">
-								  	<table class="table table-hover">
+                <div class="table-responsive">
+								  	<table class="table table-striped">
 									    <thead>
 									    <tr>
 										    <th>#</th>
@@ -111,8 +111,8 @@
 							</div>
 							{% if len(dataframe) > 0 %}
 							<div class="row ">
-								<div class="table-responsive-xl text-nowrap ">
-								  	<table class="table table-striped w-auto">
+								<div class="table-responsive">
+								  	<table class="table table-striped">
 									    <thead>
 									    <tr>
 										    <th class="th-sm ">#</th>
@@ -126,7 +126,7 @@
 									    <tr>
 										    <td scope="row">{{n+1}}</td>
 									    	{% for item in fila %}
-										    <td>{{item}}</td>	
+										    <td>{{item}}</td>
 										    {%endfor%}
 									    </tr>
 									    {% endfor %}
@@ -160,8 +160,8 @@
 							</div>
 							{% if len(dataframe_filt) > 0 %}
 							<div class="row ">
-								<div class="table-responsive-xl text-nowrap ">
-								  	<table class="table table-striped w-auto">
+                <div class="table-responsive">
+								  	<table class="table table-striped">
 									    <thead>
 									    <tr>
 										    <th class="th-sm ">#</th>
@@ -175,7 +175,7 @@
 									    <tr>
 										    <td scope="row">{{n+1}}</td>
 									    	{% for item in fila %}
-										    <td>{{item}}</td>	
+										    <td>{{item}}</td>
 										    {%endfor%}
 									    </tr>
 									    {% endfor %}
@@ -213,8 +213,8 @@
 							</div>
 							{% if len(dataframe_filt) > 0 %}
 							<div class="row ">
-								<div class="table-responsive-xl text-nowrap ">
-								  	<table class="table table-striped w-auto">
+                <div class="table-responsive">
+								  	<table class="table table-striped">
 									    <thead>
 									    <tr>
 										    <th class="th-sm ">#</th>
@@ -228,7 +228,7 @@
 									    <tr>
 										    <td scope="row">{{n+1}}</td>
 									    	{% for item in fila %}
-										    <td>{{item}}</td>	
+										    <td>{{item}}</td>
 										    {%endfor%}
 									    </tr>
 									    {% endfor %}
@@ -269,8 +269,8 @@
 							</div>
 							{% if len(dataframe_orde) > 0 %}
 							<div class="row ">
-								<div class="table-responsive-xl text-nowrap ">
-								  	<table class="table table-striped w-auto">
+                <div class="table-responsive">
+								  	<table class="table table-striped">
 									    <thead>
 									    <tr>
 										    <th class="th-sm ">#</th>
@@ -284,7 +284,7 @@
 									    <tr>
 										    <td scope="row">{{n+1}}</td>
 									    	{% for item in fila %}
-										    <td>{{item}}</td>	
+										    <td>{{item}}</td>
 										    {%endfor%}
 									    </tr>
 									    {% endfor %}
