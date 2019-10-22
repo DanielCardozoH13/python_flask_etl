@@ -15,7 +15,7 @@
 			<div class="col-lg-9">
 			<article>
 			    <div class="panel panel-primary">
-				    <div class="panel-heading">{{session['data_csv']}}</div>
+				    <div class="panel-heading">{{session['data_user']}}</div>
 			    	<div class="row">
 						<form class="md-form" action="{{url_for('especializada')}}" method="POST" >
 							<div class="col-xs-12 form-group">
@@ -26,9 +26,30 @@
 							        <h4>
 							        	import numpy as np
 							       	</h4>
-							       	<h4>
-							        	dataframe = pd.read_csv({{session['data_csv']}})
-							        </h4>
+
+							       		{% if session['extencion'] == 'csv' %}
+							       		<br>
+							       		<h4>
+							        		dataframe = pd.read_csv({{session['data_user']}}, sep = ',')
+							        	</h4>
+							       		{% elif session['extencion'] == 'xlsx' %}}
+							       		<br>
+							       		<h4>
+							        		dataframe = pd.read_excel({{session['data_user']}})
+							        	</h4>
+							       		{% elif session['extencion'] == 'db' %}
+							       		<h4>
+							       			import sqlalchemy
+							       		</h4>
+							       		<br>
+							       		<h4>
+							       			engine = sqlalchemy.create_engine('sqlite:///{{session['data_user']}}')
+							       		</h4>
+							       		<h4>
+							        		dataframe = pd.read_sql('{{session['name_table']}}',engine)
+							        	</h4>
+							       		{% endif %}
+							       	<br>
 							        <textarea name="comando" class="form-control" rows="3"></textarea>
 							    </div>
 							    <div class="col-xs-3 form-group pull-right">

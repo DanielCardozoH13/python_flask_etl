@@ -30,9 +30,9 @@ def index():
 def csv():   
 	if "data_user" in session:
 		return action() 
-	return render_template('csv.html', vista= 1)
+	return render_template('aplicacion.html', vista= 1)
 
-def gestion_dataframe(extencion , filename , path, dataframe, stream, accion = "cargar",conn = "", date = False):
+def gestion_dataframe(extencion , filename , path, dataframe, accion = "cargar",conn = "", date = False):
 	if not os.path.isdir(path):
 		os.mkdir(path)
 
@@ -107,7 +107,7 @@ def action():
 @app.route('/etl/limpiar')
 @app.route('/etl/limpiar', methods = ['POST'])
 def limpiar():
-	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
+	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
 
 	df_para_enviar = df
 	vista = 1	
@@ -124,7 +124,7 @@ def limpiar():
 					df_para_enviar = df[df.isnull().any(axis=1)]
 					if request.args.get('eliminar'):
 						df = df.dropna()
-						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
+						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 
 						df_para_enviar = df 
 						hay_nulos = False
@@ -145,7 +145,7 @@ def limpiar():
 							df = df.replace({columna: {np.nan: 0}})
 						elif accion == '3':
 							df = df.dropna(subset=[columna])
-						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
+						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 					null_columnas = df.columns[df.isnull().any()]
 					df_para_enviar = df[null_columnas]
 				else: 
@@ -169,13 +169,13 @@ def limpiar():
 					
 					if accion_nuevo == 'editar':
 						df = nuevo_df
-						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
+						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 						df_para_enviar = df.columns
 					elif accion_nuevo == 'descargar':
 						if not os.path.isdir(APP_DESCARGAS_NUEVOS):
 							os.mkdir(APP_DESCARGAS_NUEVOS)
 
-						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS_NUEVOS,dataframe=nuevo_df,stream="",accion= 'guardar')
+						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS_NUEVOS,dataframe=nuevo_df,accion= 'guardar')
 
 						return send_from_directory(APP_DESCARGAS_NUEVOS, escape(session["data_user"]), as_attachment=True)
 			#(action = 4)eliminar columnas
@@ -184,7 +184,7 @@ def limpiar():
 				if request.method == 'POST':
 					columna = request.form['columna_eliminar']
 					df = df.drop([columna], axis=1)
-					gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
+					gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 					df_para_enviar = df
 			#(action = 5) renombrar columnas
 			elif action == 5:
@@ -192,7 +192,7 @@ def limpiar():
 				if request.method == 'POST':
 					columnas = request.form
 					df.rename(columns=columnas, inplace=True)
-					gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
+					gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 	except:
 		pass
 	return render_template('limpiar.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len, hay_NULL = hay_nulos)
@@ -200,7 +200,7 @@ def limpiar():
 @app.route('/etl/consultas')
 @app.route('/etl/consultas', methods = ['POST'])
 def consultas():
-	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
+	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
 
 	df_para_enviar = df
 	vista = 1
@@ -298,7 +298,7 @@ def enviar_grafica():
 @app.route('/etl/graficas')
 @app.route('/etl/graficas', methods = ['POST'])
 def graficas():
-	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
+	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
 	df_para_enviar = df
 	vista = 1
 	file_name = [] 
@@ -441,42 +441,32 @@ def exportar_dataset():
 		if "data_user" in session:
 			tipo = int(request.args.get('tipo'))
 			if 0 < tipo and tipo < 3:
-				df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
+				df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
 
 				if not os.path.isdir(APP_DESCARGAS_EXPORT):
 						os.mkdir(APP_DESCARGAS_EXPORT)
 
 				
 				if tipo == 1:
-					ubicacion = APP_DESCARGAS
-					filename = escape(session['data_user']) 
+					filename = escape(session['name_file']) + '.csv'
+					gestion_dataframe(filename=escape(session["name_file"]), extencion='csv', path=APP_DESCARGAS_EXPORT,dataframe=df,accion= 'guardar')
 				elif tipo == 2:
 					filename = escape(session['name_file']) + ".xlsx"
-					destino_archivo = "/".join([APP_DESCARGAS_EXPORT, filename])
+					gestion_dataframe(filename=escape(session["name_file"]), extencion='xlsx', path=APP_DESCARGAS_EXPORT,dataframe=df,accion= 'guardar')
 
-
-					writer = pd.ExcelWriter(destino_archivo, engine='xlsxwriter')
-
-					df.to_excel(writer, sheet_name='hoja 1')
-
-					writer.save()
-					
-
-					ubicacion = APP_DESCARGAS_EXPORT
-
-				return send_from_directory(ubicacion, filename, as_attachment=True)
+				return send_from_directory(APP_DESCARGAS_EXPORT, filename, as_attachment=True)
 
 			else:
 				return "tipo %s" %tipo
 		else:
 			return "no session"
 	except:
-		return "hubo error para enviar archivo"
+		return "hubo error al enviar archivo"
 
 @app.route('/etl/especializada')
 @app.route('/etl/especializada', methods = ['POST'])
 def especializada():
-	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
+	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
 
 	dataframe = df
 	result = False
