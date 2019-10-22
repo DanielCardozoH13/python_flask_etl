@@ -27,7 +27,7 @@ def index():
 
 @app.route('/etl/')
 @app.route('/etl/', methods = ['POST'])
-def csv():   
+def etl():   
 	if "data_user" in session:
 		return action() 
 	return render_template('aplicacion.html', vista= 1)
@@ -97,12 +97,12 @@ def action():
 					
 					return render_template('action.html')
 				else: 
-					return csv()
+					return etl()
 				
 			except:
-				return csv()
+				return etl()
 
-	return csv()
+	return etl()
 
 @app.route('/etl/limpiar')
 @app.route('/etl/limpiar', methods = ['POST'])
@@ -503,16 +503,23 @@ def cambiar_dataset():
 		session.pop('name_file')
 	except:
 		pass
-	try:
-		archivo = escape(session['name_file']) + "." + escape(session['name_file'])
-		archivo_eliminar = "/".join([APP_DESCARGAS_EXPORT, archivo])
-		os.remove(archivo_eliminar)
-	except:
-		pass
+	for ext in ARCHIVOS_PERMITIDOS:
+		try:
+			archivo = escape(session['name_file']) + ".{}".format(ext)
+			archivo_eliminar = "/".join([APP_DESCARGAS_EXPORT, archivo])
+			os.remove(archivo_eliminar)
+		except:
+			pass
+	# try:
+	# 	archivo = escape(session['name_file']) + "." + escape(session['name_file'])
+	# 	archivo_eliminar = "/".join([APP_DESCARGAS_EXPORT, archivo])
+	# 	os.remove(archivo_eliminar)
+	# except:
+	# 	pass
 	session.pop("name_table",None)
 	session.pop('grafica', None)
 	session.pop('data_user', None)
-	return csv()
+	return etl()
 
 def guardar_grafica(ruta_carpeta, fig):
 	if not os.path.isdir(ruta_carpeta):
