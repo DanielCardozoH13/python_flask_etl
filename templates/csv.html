@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="container text-center">
-        <h2 align='center'>Seleccione un conjunto de datos</h2><br><br>
+        <h2 align='center'>Seleccione un conjunto de datos ('.csv', '.xlsx' o '.db'</h2><br><br>
         <form class="md-form" action="{{url_for('action')}}" method="POST" enctype = "multipart/form-data">
             <div class="row">
                 <div class="col-md-2">
@@ -17,7 +17,16 @@
                 </div>
             </div>
             <div class="row">
-                <button type="submit" class="btn btn-primary mb-2" value="send">Cargar</button>
+                <div class="col-md-2">
+                    <label for="input_name_table">Nombre de Tabla</label>
+                </div>
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="tabla_bd" id="input_name_table" aria-describedby="nombretablahelp" placeholder="Si su elección es un archivo '.db', ingrese el nombre de una tabla de la base de datos">
+                    <small id="nombretablahelp" class="form-text text-muted">Aplica sólo cuando el archivo a subir es '.db'</small>
+                </div>
+            </div>
+            <div class="row">
+                <button type="submit" class="btn btn-primary mb-2" value="submit">Cargar</button>
             </div>
         </form>
     </div>
