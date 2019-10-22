@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    ETL | csv limpieza
+    ETL | limpieza
 {% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
 		<div class="row limpieza">
 			<div class="col-12">
 				<section class="headline">
-					<h1 class="title margen_botton_titulo">Limpieza csv</h1>
+					<h1 class="title margen_botton_titulo">Limpieza</h1>
 				</section>
 			</div>
 			<div class="col-lg-9">
@@ -38,7 +38,7 @@
 							                    <th scope="row">{{columna}}</th>
 							                    <td scope="row">{{dataframe[columna].count()}}</td>
 						                    {% endif%}
-						                </tr>  
+						                </tr>
 						            {% endfor %}
 						        </tbody>
 						      </table>
@@ -75,7 +75,7 @@
 							                <tr>
 							                    <th scope="row">{{columna}}</th>
 							                    <td scope="row">{{len(columna)}}</td>
-							                </tr>  
+							                </tr>
 							            {% endfor %}
 							        </tbody>
 						      	</table>
@@ -171,7 +171,7 @@
 											            <li class="list-group-item">
 											                <span class="badge"><input type="checkbox" aria-label="Checkbox para columna" name="{{titulo}}" value="{{titulo}}"></span>
 											                {{titulo}}
-											            </li>  
+											            </li>
 											        {% endif %}
 										        {% endfor %}
 										    </ul>
@@ -181,7 +181,7 @@
 				        	{% else %}
 				        		<h3>No hay columnas para mostrar</h3>
 				        	{% endif %}
-				        	
+
 				        </div>
 					</div>
 				{% elif vista == 5 %}
@@ -207,7 +207,7 @@
 										            <li class="list-group-item">
 										                <span class="badge"><input type="radio" aria-label="Checkbox para columna" name="columna_eliminar" value="{{titulo}}"></span>
 										                {{titulo}}
-										            </li>  
+										            </li>
 										        {% endif %}
 									        {% endfor %}
 									    </ul>

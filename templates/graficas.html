@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    ETL | csv gráficas
+    ETL | gráficas
 {% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
 		<div class="row limpieza">
 			<div class="col-12">
 				<section class="headline">
-					<h1 class="title margen_botton_titulo">Gráficas csv</h1>
+					<h1 class="title margen_botton_titulo">Gráficas</h1>
 				</section>
 			</div>
 			<div class="col-lg-9">
@@ -23,17 +23,17 @@
                       <div class="table-responsive">
       								  	<table class="table table-striped">
 						        		    <thead>
-						        		    <tr class="row col-md-12">
+						        		    <tr">
 						        		    	{% for titulo in dataframe.columns  %}
-						        			    <th class="col-md-1">{{titulo}}</th>
+						        			    <th>{{titulo}}</th>
 						        			    {% endfor %}
 						        		    </tr>
 						        		    </thead>
 						        		    <tbody>
 						        		    {% for fila in dataframe[:8].values %}
-						        		    <tr class="row col-md-12">
+						        		    <tr>
 						        		    	{% for item in fila %}
-						        			    <td class="col-5">{{item}}</td>
+						        			    <td>{{item}}</td>
 						        			    {%endfor%}
 						        		    </tr>
 						        		    {% endfor %}
