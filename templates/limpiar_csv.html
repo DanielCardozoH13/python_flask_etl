@@ -71,10 +71,10 @@
 							          </tr>
 							        </thead>
 							        <tbody>
-							            {% for columna in dataframe.index %}
+							            {% for columna in dataframe %}
 							                <tr>
 							                    <th scope="row">{{columna}}</th>
-							                    <td scope="row">{{dataframe[columna].count()}}</td>
+							                    <td scope="row">{{len(columna)}}</td>
 							                </tr>  
 							            {% endfor %}
 							        </tbody>
@@ -264,7 +264,7 @@
 						Inicio limpieza
 						</a>
 						<a href="{{url_for('limpiar_csv',action = 1)}}" class="list-group-item {% if vista == 2 %} active {% endif %}">
-						Eliminar todos los registros donde halla un campo vacio
+						Operaciones rapidas
 						</a>
 						<a href="{{url_for('limpiar_csv',action = 2)}}" class="list-group-item {% if vista == 3 %} active {% endif %}">Seleccionar columna y cambiar campos vacios por un dato ingresado</a>
 						<a href="{{url_for('limpiar_csv',action = 3)}}" class="list-group-item {% if vista == 4 %} active {% endif %}">Seleccionar columnas y crear nuevo conjunto de datos</a>

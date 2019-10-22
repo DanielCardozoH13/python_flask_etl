@@ -1,16 +1,13 @@
-from flask import Flask, render_template, request, redirect, make_response, session, escape, send_from_directory, send_file, url_for
-import os, io, datetime, time, random, matplotlib, math
+from flask import Flask, render_template, request, session, escape, send_from_directory, url_for
+import os, io, datetime, random, matplotlib, sqlite3
 import pandas as pd
 import numpy as np
-matplotlib.rcParams.update({'font.size': 15}) 
-#import models as algorithms
-#import plotfunctions as plotfun
 import matplotlib.pyplot as plt
-#from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-#from matplotlib.figure import Figure
-#from io import BytesIO
-
+from werkzeug.utils import secure_filename
+matplotlib.rcParams.update({'font.size': 15}) 
+  
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 #variables globales donde se identifican los path para guardar los archivos en el proyecto
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -18,8 +15,10 @@ APP_DESCARGAS = os.path.join(APP_ROOT, 'static/descargas/')
 APP_DESCARGAS_GRAFICAS = os.path.join(APP_DESCARGAS, 'graficas/')
 APP_DESCARGAS_EXPORT = os.path.join(APP_DESCARGAS, 'exportaciones/')
 APP_DESCARGAS_NUEVOS = os.path.join(APP_DESCARGAS, 'nuevos/')
+ARCHIVOS_PERMITIDOS = ['csv', 'xlsx', 'db']
 app.secret_key = '123456'
 
+app.config['UPLOAD_FOLDER'] = APP_DESCARGAS
 
 @app.route('/')
 def index():
@@ -33,91 +32,91 @@ def csv():
 		return action() 
 	return render_template('csv.html', vista= 1)
 
-def gestion_dataframe(extencion , filename , path, accion = "cargar"):
+def gestion_dataframe(extencion , filename , path, dataframe, stream, accion = "cargar",conn = "", date = False):
 	if not os.path.isdir(path):
 		os.mkdir(path)
 
-	date = datetime.datetime.now()
-	date = date.strftime("%d-%m-%Y %H%M%S")
+	if date == True: 
+		date = datetime.datetime.now()
+		date = date.strftime("%d-%m-%Y %H%M%S")
+		nombre_sin_ext = filename + date
+	else:
+		nombre_sin_ext = filename
 
-	nombre_sin_ext = filename 
-	nombre = nombre_sin_ext + date + "." + extencion
-	ubicacion = "/".join([path, nombre])
-	
-	if extencion == "csv":
-		if accion == 'cargar':
+	nombre_completo = nombre_sin_ext+ "." + extencion	
+	ubicacion = "/".join([path, nombre_completo])
+	if accion == 'cargar':
+		if extencion == 'csv':
 			df = pd.read_csv(ubicacion, sep=",")
-			return (ubicacion, df)
-		elif accion == 'guardar':
-			df.to_csv(ubicacion,  index=False)
-
-	elif extencion == "xslx":
-		if accion == 'cargar':
+		elif extencion == 'xlsx':
 			#solo carga el contenido de la primer hoja del documento de excel
 			df = pd.read_excel(ubicacion)
-		elif accion == 'guardar':
-			df.to_excel(ubicacion, sheet_name='hoja1')
-	return (ubicacion, df)
-
+		elif extencion == 'db':
+			con = sqlite3.connect(ubicacion)
+			df = pd.read_sql_query("SELECT * FROM {};".format(escape(session["name_table"])), con)
+			con.close()
+		return df
+	elif accion == 'guardar':
+		try:
+			os.remove(ubicacion)
+		except:
+			pass
+		if extencion == "csv":
+			dataframe.to_csv(ubicacion,  index=False)
+		elif extencion == 'xlsx':
+			dataframe.to_excel(ubicacion, sheet_name='hoja 1')
+		elif extencion == 'db':
+			con = sqlite3.connect(ubicacion)
+			dataframe.to_sql(ubicacion, con=con, index=False, if_exists='replace')
 
 @app.route('/csv/action')
 @app.route('/csv/action', methods = ['GET','POST'])
 def action():
-	#ruta = os.path.join(APP_ROOT, 'datos_csv/')
-	#ruta = APP_ROOT + 'datos_csv/'
 	if "data_user" in session:
 		return render_template("action_csv.html")
-	if request.method == 'POST':
-		try:
-			file = request.files['file']
-
-			split_archivo = file.filename.split(".")
-			stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
-			if split_archivo[1] == "csv":
+	else:
+		if request.method == 'POST':
+			try:
+				file = request.files['file']
 
 				if not os.path.isdir(APP_DESCARGAS):
 					os.mkdir(APP_DESCARGAS)
+
+				split_archivo = file.filename.split(".")
+				if split_archivo[1] in ARCHIVOS_PERMITIDOS:
+					filename = secure_filename(file.filename)
+					path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+					file.save(path)
+					session["name_file"] = filename.split('.')[0]
+					session["extencion"] = split_archivo[1]
+					session["data_user"] = filename
+					if len(request.form['tabla_bd']) > 0 and split_archivo[1] == 'db':
+						session["name_table"] = request.form['tabla_bd']
+					else:
+						session["name_table"] = ""
+					
+					return render_template('action_csv.html')
+				else: 
+					return csv()
 				
-				date = datetime.datetime.now()
-				date = date.strftime("%d-%m-%Y %H%M%S")
-				filename = split_archivo[0] + str(date) + "." + split_archivo[1]
-				destino = "/".join([APP_DESCARGAS, filename])
+			except:
+				return csv()
 
-				#se carga el archivo csv a un objeto pandas
-				df_csv = pd.read_csv(stream, sep=",")
-				
-
-
-				#se guarda el archivo como csv en la carpeta destino
-				df_csv.to_csv(destino,  index=False)
-	
-				#se crea cookie para almacenar el nombre del archivo guardado 
-				session["name_file"] = split_archivo[0] + str(date)
-				session["extencion"] = split_archivo[1]
-				session["data_user"] = filename
-				#para enviar por get, el nombre del archivo
-				#filename = escape(session['data_user'])
-				return render_template('action_csv.html')
-				#resp.set_cookie('data_user',filename)
-
-		except:
-			return csv()
+	return csv()
 
 @app.route('/csv/limpiar')
 @app.route('/csv/limpiar', methods = ['POST'])
 def limpiar_csv():
-	archivo_usuario = escape(session['data_user'])
-	archivo_ubicacion = "/".join([APP_DESCARGAS, escape(session['data_user'])])
-	df = pd.read_csv(archivo_ubicacion)
+	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
+
 	df_para_enviar = df
 	vista = 1	
 	hay_nulos = False
-	#try:
 	try:
 		action = int(request.args.get('action'))
 	
 		if (action > 0) and (action < 7):
-			#(action = 1) Eliminar todos los registros donde halla un campo vacio
+			#(action = 1) opciones rapidas
 			if action == 1:
 				vista = 2 
 				if df.isnull().values.any(): #se verifican que hallan campos NUll
@@ -125,9 +124,10 @@ def limpiar_csv():
 					df_para_enviar = df[df.isnull().any(axis=1)]
 					if request.args.get('eliminar'):
 						df = df.dropna()
-						os.remove(archivo_ubicacion)	
-						df.to_csv(archivo_ubicacion, index=False)
+						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
+
 						df_para_enviar = df 
+						hay_nulos = False
 				else: 
 					hay_nulos = False	
 			#(action = 2)seleccionar, eliminar o remplazar registros donde hallan campos vacios
@@ -145,8 +145,7 @@ def limpiar_csv():
 							df = df.replace({columna: {np.nan: 0}})
 						elif accion == '3':
 							df = df.dropna(subset=[columna])
-						os.remove(archivo_ubicacion)	
-						df.to_csv(archivo_ubicacion, index=False)
+						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
 					null_columnas = df.columns[df.isnull().any()]
 					df_para_enviar = df[null_columnas]
 				else: 
@@ -170,32 +169,22 @@ def limpiar_csv():
 					
 					if accion_nuevo == 'editar':
 						df = nuevo_df
-						os.remove(archivo_ubicacion)	
-						df.to_csv(archivo_ubicacion, index=False)
+						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
 						df_para_enviar = df.columns
 					elif accion_nuevo == 'descargar':
 						if not os.path.isdir(APP_DESCARGAS_NUEVOS):
 							os.mkdir(APP_DESCARGAS_NUEVOS)
 
-						date = datetime.datetime.now()
-						date = date.strftime("%d-%m-%Y %H%M%S")
+						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS_NUEVOS,dataframe=nuevo_df,stream="",accion= 'guardar')
 
-						nombre_archivo = archivo_usuario[:-4]+"_nuevo"+str(date)+".csv"
-
-						destino = "/".join([APP_DESCARGAS_NUEVOS, nombre_archivo])
-
-						nuevo_df.to_csv(destino,  index=False)
-
-						return send_from_directory(APP_DESCARGAS_NUEVOS, nombre_archivo, as_attachment=True)
-
+						return send_from_directory(APP_DESCARGAS_NUEVOS, escape(session["data_user"]), as_attachment=True)
 			#(action = 4)eliminar columnas
 			elif action == 4:
 				vista = 5
 				if request.method == 'POST':
 					columna = request.form['columna_eliminar']
 					df = df.drop([columna], axis=1)
-					os.remove(archivo_usuario)	
-					df.to_csv(archivo_usuario, index=False)
+					gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
 					df_para_enviar = df
 			#(action = 5) renombrar columnas
 			elif action == 5:
@@ -203,8 +192,7 @@ def limpiar_csv():
 				if request.method == 'POST':
 					columnas = request.form
 					df.rename(columns=columnas, inplace=True)
-					os.remove(archivo_ubicacion)	
-					df.to_csv(archivo_ubicacion, index=False)
+					gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
 	except:
 		pass
 	return render_template('limpiar_csv.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len, hay_NULL = hay_nulos)
@@ -212,9 +200,8 @@ def limpiar_csv():
 @app.route('/csv/consultas')
 @app.route('/csv/consultas', methods = ['POST'])
 def consultas_csv():
-	archivo_usuario = escape(session['data_user'])
-	archivo_ubicacion = "/".join([APP_DESCARGAS, escape(session['data_user'])])
-	df = pd.read_csv(archivo_ubicacion)
+	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
+
 	df_para_enviar = df
 	vista = 1
 	hay_nulos = False
@@ -295,9 +282,9 @@ def consultas_csv():
 				orden = request.form['orden']
 
 				if orden == 'asd':
-					direccion = True
-				elif orden == 'des':
 					direccion = False
+				elif orden == 'des':
+					direccion = True
 
 				df_ordenado = df.sort_values(by=columna, ascending=direccion)
 				
@@ -311,9 +298,7 @@ def enviar_grafica():
 @app.route('/csv/graficas')
 @app.route('/csv/graficas', methods = ['POST'])
 def graficas():
-	archivo_usuario = escape(session['data_user'])
-	archivo_ubicacion = "/".join([APP_DESCARGAS, escape(session['data_user'])])
-	df = pd.read_csv(archivo_ubicacion)
+	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
 	df_para_enviar = df
 	vista = 1
 	file_name = [] 
@@ -456,19 +441,17 @@ def exportar_dataset():
 		if "data_user" in session:
 			tipo = int(request.args.get('tipo'))
 			if 0 < tipo and tipo < 3:
-				archivo_usuario = "/".join([APP_DESCARGAS, escape(session['data_user'])])
-				df = pd.read_csv(archivo_usuario)
+				df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
 
 				if not os.path.isdir(APP_DESCARGAS_EXPORT):
 						os.mkdir(APP_DESCARGAS_EXPORT)
 
-				split_archivo = str(escape(session['data_user'])).split(".")
 				
 				if tipo == 1:
 					ubicacion = APP_DESCARGAS
 					filename = escape(session['data_user']) 
 				elif tipo == 2:
-					filename = split_archivo[0] + ".xlsx"
+					filename = escape(session['name_file']) + ".xlsx"
 					destino_archivo = "/".join([APP_DESCARGAS_EXPORT, filename])
 
 
@@ -493,9 +476,8 @@ def exportar_dataset():
 @app.route('/csv/especializada')
 @app.route('/csv/especializada', methods = ['POST'])
 def especializada():
-	archivo_usuario = escape(session['data_user'])
-	archivo_ubicacion = "/".join([APP_DESCARGAS, escape(session['data_user'])])
-	df = pd.read_csv(archivo_ubicacion)
+	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
+
 	dataframe = df
 	result = False
 	salida_comando = ""
@@ -525,11 +507,20 @@ def cambiar_dataset():
 		os.remove(destino_anterior)
 	except:
 		pass
-
+	try:
+		destino_anterior = "/".join([APP_DESCARGAS_NUEVOS, escape(session['name_file'])])
+		os.remove(destino_anterior)
+		session.pop('name_file')
+	except:
+		pass
+	try:
+		archivo_eliminar = "/".join([APP_DESCARGAS_EXPORT, escape(session['data_user'])])
+		os.remove(archivo_eliminar)
+	except:
+		pass
 	session.pop('grafica', None)
 	session.pop('data_user', None)
 	return csv()
-
 
 def guardar_grafica(ruta_carpeta, fig):
 	if not os.path.isdir(ruta_carpeta):
@@ -593,18 +584,10 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
         
         if label(etiqueta):
             ax.legend()
-            
         ax.grid()
-
-        #return "ok"
-
         filename = guardar_grafica(path, fig)
-
         plt.close()
-
         return filename
-
-        #plt.show()
 
     elif tipo == "columnas":
         #Ojo 'X' debe ser Int() o FLoat()
@@ -614,15 +597,11 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
         colores = colores_aleatorios(len(x.unique())+1)
         plt.bar(x, y, width = 0.8, color = colores)
         plt.xticks(x.unique(), tuple(x.unique().tolist()))
-        
         ax.set(xlabel=labelx, ylabel=labely,
                title=title)
-        
         if label(etiqueta):
            ax.legend()
-            
         ax.grid()
-
         result = guardar_grafica(path, fig)
         plt.close()
         return result
@@ -630,14 +609,11 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
     elif tipo == "barras":
         #"ojo colocar a 'X' en la ordenada como si fuera 'Y', 'X' debe ser Int() o Float()"
         fig, ax = plt.subplots(figsize=tamano_fig)
-        #fig.tight_layout()
         colores = colores_aleatorios(len(y.unique())+1)
         plt.barh(y, x, color = colores)
         plt.xticks(x.unique(), tuple(x.unique().tolist()))
-        
         ax.set(xlabel=labelx, ylabel=labely,
                title=title)
-        
         if label(etiqueta):
             ax.legend()
             
