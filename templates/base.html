@@ -25,8 +25,8 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="http://localhost:5000/">Inicio</a></li>
-            <li><a href="http://localhost:5000/etl">Aplicación</a></li>
+            <li class="{% block active_navber_inicio %} {% endblock %}"><a href="http://localhost:5000/">Inicio</a></li>
+            <li class="{% block active_navber_app %} {% endblock %}"><a href="http://localhost:5000/etl">Aplicación</a></li>
           </ul>
         </div>
       </div>
