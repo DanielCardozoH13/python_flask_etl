@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, session, escape, send_from_directory, url_for
+from flask import Flask, render_template, request, session, escape, send_from_directory, url_for, flash
 import os, io, datetime, random, matplotlib, sqlite3, sqlalchemy
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from werkzeug.utils import secure_filename
-matplotlib.rcParams.update({'font.size': 15}) ##configura el tamaño de la fuente en gráficas 
-  
+matplotlib.rcParams.update({'font.size': 15}) ##configura el tamaño de la fuente en gráficas
+
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 ##indica el máximo contenido de carga de archivos
 
@@ -18,7 +18,7 @@ APP_DESCARGAS_NUEVOS = os.path.join(APP_DESCARGAS, 'nuevos/')
 ARCHIVOS_PERMITIDOS = ['csv', 'xlsx', 'db']
 app.secret_key = '123456'
 
-app.config['UPLOAD_FOLDER'] = APP_DESCARGAS 
+app.config['UPLOAD_FOLDER'] = APP_DESCARGAS
 
 @app.route('/')
 def index():
@@ -27,23 +27,23 @@ def index():
 
 @app.route('/etl/')
 @app.route('/etl/', methods = ['POST'])
-def etl():   
+def etl():
 	if "data_user" in session:
-		return action() 
+		return action()
 	return render_template('aplicacion.html', vista= 1)
 
 def gestion_dataframe(extencion , filename , path, dataframe, accion = "cargar",conn = "", date = False):
 	if not os.path.isdir(path):
 		os.mkdir(path)
 
-	if date == True: 
+	if date == True:
 		date = datetime.datetime.now()
 		date = date.strftime("%d-%m-%Y %H%M%S")
 		nombre_sin_ext = filename + date
 	else:
 		nombre_sin_ext = filename
 
-	nombre_completo = nombre_sin_ext+ "." + extencion	
+	nombre_completo = nombre_sin_ext+ "." + extencion
 	ubicacion = "/".join([path, nombre_completo])
 	if accion == 'cargar':
 		if extencion == 'csv':
@@ -73,6 +73,7 @@ def gestion_dataframe(extencion , filename , path, dataframe, accion = "cargar",
 @app.route('/etl/action', methods = ['GET','POST'])
 def action():
 	if "data_user" in session:
+
 		return render_template("action.html")
 	else:
 		if request.method == 'POST':
@@ -94,12 +95,15 @@ def action():
 						session["name_table"] = request.form['tabla_bd']
 					else:
 						session["name_table"] = ""
-					
+						
+					flash("Los datos han sido cargados con exito", "notify")
 					return render_template('action.html')
-				else: 
+				else:
+					flash("Los datos ingresados no son válidos.", "alert")
 					return etl()
-				
+
 			except:
+				flash("No adjunto ningun archivo.", "alert")
 				return etl()
 
 	return etl()
@@ -110,15 +114,15 @@ def limpiar():
 	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
 
 	df_para_enviar = df
-	vista = 1	
+	vista = 1
 	hay_nulos = False
 	try:
 		action = int(request.args.get('action'))
-	
+
 		if (action > 0) and (action < 7):
 			#(action = 1) opciones rapidas
 			if action == 1:
-				vista = 2 
+				vista = 2
 				if df.isnull().values.any(): #se verifican que hallan campos NUll
 					hay_nulos = True
 					df_para_enviar = df[df.isnull().any(axis=1)]
@@ -126,10 +130,10 @@ def limpiar():
 						df = df.dropna()
 						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 
-						df_para_enviar = df 
+						df_para_enviar = df
 						hay_nulos = False
-				else: 
-					hay_nulos = False	
+				else:
+					hay_nulos = False
 			#(action = 2)seleccionar, eliminar o remplazar registros donde hallan campos vacios
 			elif action == 2:
 				vista = 3
@@ -148,7 +152,7 @@ def limpiar():
 						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 					null_columnas = df.columns[df.isnull().any()]
 					df_para_enviar = df[null_columnas]
-				else: 
+				else:
 					hay_nulos = False
 			#(action = 3) seleccionar columnas para crear nuevo dataset
 			elif action == 3:
@@ -165,8 +169,8 @@ def limpiar():
 							nombre_columnas.append(columna)
 					nuevo_df = df[nombre_columnas]
 					df_para_enviar = nuevo_df
-					
-					
+
+
 					if accion_nuevo == 'editar':
 						df = nuevo_df
 						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
@@ -207,7 +211,7 @@ def consultas():
 	hay_nulos = False
 	df_filtrado = []
 	df_ordenado = []
-	
+
 	try:
 		action = int(request.args.get('action'))
 	except:
@@ -216,13 +220,13 @@ def consultas():
 	if (action > 0) and (action < 7):
 		#(action = 1) ver columnas
 		if action == 1:
-			vista = 2 
+			vista = 2
 			df_columna = df.iloc[:,0]
 			try:
 				columna = request.args.get('item')
 				df_columna = df[columna]
 			except:
-				pass 
+				pass
 			return render_template('consultar.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len,  dataframe_col = df_columna)
 
 		#(action = 2)ver grupo de registros
@@ -251,9 +255,9 @@ def consultas():
 				columnas = request.form.getlist('columnas')
 				if len(columnas) > 0:
 					df_filtrado = df.filter(items=columnas)
-				else: 
+				else:
 					df_filtrado = []
-						
+
 		#(action = 4) filtrar por valor de columna
 		elif action == 4:
 			vista = 5
@@ -269,7 +273,7 @@ def consultas():
 					elif tipo_columna == 'object':
 						valor = str(request.form['valor_filtro'])
 
-					df_filtrado = df[df[columna] == valor]	
+					df_filtrado = df[df[columna] == valor]
 				except:
 					df_filtrado = []
 
@@ -287,7 +291,7 @@ def consultas():
 					direccion = True
 
 				df_ordenado = df.sort_values(by=columna, ascending=direccion)
-				
+
 	return render_template('consultar.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len, dataframe_filt = df_filtrado, dataframe_orde = df_ordenado)
 
 @app.route('/etl/enviar_grafica')
@@ -301,7 +305,7 @@ def graficas():
 	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
 	df_para_enviar = df
 	vista = 1
-	file_name = [] 
+	file_name = []
 
 	try:
 		action = int(request.args.get('action'))
@@ -311,7 +315,7 @@ def graficas():
 	if (action > 0) and (action < 7):
 		#(action = 1) Grafica Lineal
 		if action == 1:
-			vista = 2 
+			vista = 2
 			df_para_enviar = df
 			if request.method == 'POST':
 				ejex = request.form['ejeX']
@@ -326,17 +330,17 @@ def graficas():
 					cantidad_registros = len(df)-1
 				else:
 					cantidad_registros = int(cantidad_registros)
- 
+
 
 				x = df[ejex][:cantidad_registros]
 				y = df[ejey][:cantidad_registros]
-				
-				file_name = graficadora(x=x,y=y,tipo="lineal",title=titulo_grafica,etiqueta = legend, 
+
+				file_name = graficadora(x=x,y=y,tipo="lineal",title=titulo_grafica,etiqueta = legend,
 							labelx = labelx,labely=labely, path=APP_DESCARGAS_GRAFICAS)
-				
+
 		#(action = 2)Gráfica Columnas
 		elif action == 2:
-			vista = 3 
+			vista = 3
 			df_para_enviar = df
 			if request.method == 'POST':
 				ejex = request.form['ejeX']
@@ -352,17 +356,17 @@ def graficas():
 					cantidad_registros = len(df)-1
 				else:
 					cantidad_registros = int(cantidad_registros)
- 
+
 
 				x = df[ejex][:cantidad_registros]
 				y = df[ejey][:cantidad_registros]
 
-				file_name = graficadora(x=x,y=y,tipo="columnas",title=titulo_grafica,etiqueta = legend, 
+				file_name = graficadora(x=x,y=y,tipo="columnas",title=titulo_grafica,etiqueta = legend,
 							labelx = labelx,labely=labely, path=APP_DESCARGAS_GRAFICAS)
 
 		#(action = 3) Gráfica barras
 		elif action == 3:
-			vista = 4 
+			vista = 4
 			df_para_enviar = df
 			if request.method == 'POST':
 				ejex = request.form['ejeX']
@@ -372,23 +376,23 @@ def graficas():
 				labelx = request.form['titulo_ejex']
 				labely = request.form['titulo_ejey']
 				legend = request.form['legend']
-			
-				
+
+
 				if len(cantidad_registros)==0:
 					cantidad_registros = len(df)-1
 				else:
 					cantidad_registros = int(cantidad_registros)
- 
+
 
 				x = df[ejex][:cantidad_registros]
 				y = df[ejey][:cantidad_registros]
 
-				file_name = graficadora(x=y,y=x,tipo='barras',title=titulo_grafica,etiqueta = legend, 
+				file_name = graficadora(x=y,y=x,tipo='barras',title=titulo_grafica,etiqueta = legend,
 							labelx = labelx,labely=labely, path=APP_DESCARGAS_GRAFICAS)
-				
+
 		#(action = 4) Gráfica Histograma
 		elif action == 4:
-			vista = 5 
+			vista = 5
 			df_para_enviar = df
 			if request.method == 'POST':
 				ejex = request.form['ejeX']
@@ -397,35 +401,35 @@ def graficas():
 				labelx = request.form['titulo_ejex']
 				labely = request.form['titulo_ejey']
 				legend = request.form['legend']
-				
-				
+
+
 				if len(cantidad_registros)==0:
 					cantidad_registros = len(df)-1
 				else:
 					cantidad_registros = int(cantidad_registros)
- 
+
 
 				x = df[ejex][:cantidad_registros]
 
 
-				file_name = graficadora(x=x,tipo='histogr',title=titulo_grafica,etiqueta = legend, 
+				file_name = graficadora(x=x,tipo='histogr',title=titulo_grafica,etiqueta = legend,
 							labelx = labelx,labely=labely, path=APP_DESCARGAS_GRAFICAS)
 
 		#(action = 5) Gráficar pie
 		elif action == 5:
-			vista = 6 
+			vista = 6
 			df_para_enviar = df
 			if request.method == 'POST':
 				ejex = request.form['ejeX']
 				ejey = request.form['ejeY']
 				cantidad_registros = request.form['cantidad_registros']
 				titulo_grafica = request.form['titulo_grafica']
-				
+
 				if len(cantidad_registros)==0:
 					cantidad_registros = len(df)-1
 				else:
 					cantidad_registros = int(cantidad_registros)
- 
+
 
 				x = df[ejex][:cantidad_registros]
 				y = df[ejey][:cantidad_registros]
@@ -446,7 +450,7 @@ def exportar_dataset():
 				if not os.path.isdir(APP_DESCARGAS_EXPORT):
 						os.mkdir(APP_DESCARGAS_EXPORT)
 
-				
+
 				if tipo == 1:
 					filename = escape(session['name_file']) + '.csv'
 					gestion_dataframe(filename=escape(session["name_file"]), extencion='csv', path=APP_DESCARGAS_EXPORT,dataframe=df,accion= 'guardar')
@@ -481,7 +485,7 @@ def especializada():
 			except:
 				salida_comando = "Error en su sintaxis"
 			finally:
-				result = True	
+				result = True
 
 	return render_template('especializada.html', result = result, salida_comando=salida_comando)
 
@@ -557,7 +561,7 @@ def deme_tamano_eje(cantidad_datos=int()):
     elif cantidad_datos >= 210:
         ejex = 17
         ejey = 17
-        
+
     return (ejex, ejey)
 
 def colores_aleatorios(num_colores=1):
@@ -566,21 +570,21 @@ def colores_aleatorios(num_colores=1):
              for i in range(num_colores)]
     return color
 
-def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx = "X",labely="Y", path=""): 
+def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx = "X",labely="Y", path=""):
     tamano_fig = deme_tamano_eje(len(x))
     label = lambda x: True if len(etiqueta)>0 else False
-    
-    
+
+
 
     if tipo == "lineal":
         fig, ax = plt.subplots(figsize=tamano_fig)
         fig.tight_layout()
-    
+
         ax.plot(x, y, label = etiqueta)
 
         ax.set(xlabel=labelx, ylabel=labely,
                title=title)
-        
+
         if label(etiqueta):
             ax.legend()
         ax.grid()
@@ -592,7 +596,7 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
         #Ojo 'X' debe ser Int() o FLoat()
         fig, ax = plt.subplots(figsize=tamano_fig)
         fig.tight_layout()
-        
+
         colores = colores_aleatorios(len(x.unique())+1)
         plt.bar(x, y, width = 0.8, color = colores)
         plt.xticks(x.unique(), tuple(x.unique().tolist()))
@@ -604,7 +608,7 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
         result = guardar_grafica(path, fig)
         plt.close()
         return result
-    
+
     elif tipo == "barras":
         #"ojo colocar a 'X' en la ordenada como si fuera 'Y', 'X' debe ser Int() o Float()"
         fig, ax = plt.subplots(figsize=tamano_fig)
@@ -615,12 +619,12 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
                title=title)
         if label(etiqueta):
             ax.legend()
-            
+
         ax.grid()
 
         result = guardar_grafica(path, fig)
         plt.close()
-        return result     
+        return result
 
     elif tipo == "histogr":
         if str(x.dtypes) == 'int64' or str(x.dtypes) == 'float64':
@@ -629,8 +633,8 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
             fig.tight_layout()
 
 
-            data_ordenada = np.sort(x, axis=None) 
-            plt.hist(data_ordenada, bins='auto', density=True, facecolor='g') 
+            data_ordenada = np.sort(x, axis=None)
+            plt.hist(data_ordenada, bins='auto', density=True, facecolor='g')
 
             ax.set(xlabel=labelx, ylabel=labely,
                    title=title)
@@ -647,27 +651,27 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
 
         else:
             return "La serie de valores debe ser de tipo Int() o Float() "
-    
+
     elif tipo == "porcentaje":
         f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, figsize=(16,7))
-        
+
         labels1 = x.value_counts().index.tolist()
         slices1 = x.value_counts().tolist()
         colores1 = colores_aleatorios(len(x.unique())+1)
-        ax1.pie(slices1, labels = labels1, colors=colores1, startangle=90, radius = 1, autopct = '%1.1f%%') 
+        ax1.pie(slices1, labels = labels1, colors=colores1, startangle=90, radius = 1, autopct = '%1.1f%%')
         ax1.set_title(x.name)
         ax1.grid()
         ax1.legend(bbox_to_anchor=(1.05, 1), loc=1, borderaxespad=0.)
-        
-        
+
+
         labels2 = y.value_counts().index.tolist()
         slices2 = y.value_counts().tolist()
         colores2 = colores_aleatorios(len(y.unique())+1)
-        ax2.pie(slices2, labels = labels2, colors=colores2, startangle=90, radius = 1, autopct = '%1.1f%%') 
+        ax2.pie(slices2, labels = labels2, colors=colores2, startangle=90, radius = 1, autopct = '%1.1f%%')
         ax2.set_title(y.name)
         ax2.grid()
         ax2.legend(bbox_to_anchor=(1.05, 1), loc=1, borderaxespad=0.)
-        
+
         f.suptitle(title, va = 'bottom')
 
         result = guardar_grafica(path, f)
@@ -676,6 +680,3 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
 
 if __name__ == '__main__':
 	app.run(debug=True, port=5000)
-
-
-	

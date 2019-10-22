@@ -1,0 +1,13 @@
+
+.notify {
+  background-color: #d2ffd3 !important;
+  color: #207832 !important;
+  padding: 8px !important;
+  margin-top: 10px !important;
+}
+.alert {
+  background-color: #ffd2d2 !important;
+  color: #782020 !important;
+  padding: 8px !important;
+  margin-top: 10px !important;
+}

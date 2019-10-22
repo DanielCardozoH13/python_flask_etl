@@ -13,6 +13,7 @@
     <link href="{{url_for('static', filename = 'css/bootstrap.min.css')}}" rel="stylesheet">
     <!--stilos propios-->
     <link href="{{url_for('static', filename = 'css/styles.css')}}" rel="stylesheet">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/notificaciones.css')}}">
 
   </head>
 
@@ -31,6 +32,19 @@
         </div>
       </div>
     </nav>
+
+        {% with messages = get_flashed_messages(with_categories=True) %}
+    			{% if messages %}
+    				{% for category, message in messages %}
+    					<div class="container d-flex align-items-center flex-column">
+    						<div class="{{category}} card align-items-center">
+    							{{ message }}
+    						</div>
+    					</div>
+    				{% endfor %}
+    			{% endif %}
+    		{% endwith %}
+
     {% block content %}
     {% endblock %}
 
