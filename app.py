@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request, session, escape, send_from_directory, url_for
-import os, io, datetime, random, matplotlib, sqlite3
+import os, io, datetime, random, matplotlib, sqlite3, sqlalchemy
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from werkzeug.utils import secure_filename
-matplotlib.rcParams.update({'font.size': 15}) 
+matplotlib.rcParams.update({'font.size': 15}) ##configura el tamaño de la fuente en gráficas 
   
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 ##indica el máximo contenido de carga de archivos
 
 #variables globales donde se identifican los path para guardar los archivos en el proyecto
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -18,15 +18,15 @@ APP_DESCARGAS_NUEVOS = os.path.join(APP_DESCARGAS, 'nuevos/')
 ARCHIVOS_PERMITIDOS = ['csv', 'xlsx', 'db']
 app.secret_key = '123456'
 
-app.config['UPLOAD_FOLDER'] = APP_DESCARGAS
+app.config['UPLOAD_FOLDER'] = APP_DESCARGAS 
 
 @app.route('/')
 def index():
 	return render_template('index.html')
 
 
-@app.route('/csv/')
-@app.route('/csv/', methods = ['POST'])
+@app.route('/etl/')
+@app.route('/etl/', methods = ['POST'])
 def csv():   
 	if "data_user" in session:
 		return action() 
@@ -52,9 +52,8 @@ def gestion_dataframe(extencion , filename , path, dataframe, stream, accion = "
 			#solo carga el contenido de la primer hoja del documento de excel
 			df = pd.read_excel(ubicacion)
 		elif extencion == 'db':
-			con = sqlite3.connect(ubicacion)
-			df = pd.read_sql_query("SELECT * FROM {};".format(escape(session["name_table"])), con)
-			con.close()
+			engine = sqlalchemy.create_engine('sqlite:///{}'.format(ubicacion))
+			df = pd.read_sql(str(escape(session["name_table"])), engine)
 		return df
 	elif accion == 'guardar':
 		try:
@@ -66,14 +65,15 @@ def gestion_dataframe(extencion , filename , path, dataframe, stream, accion = "
 		elif extencion == 'xlsx':
 			dataframe.to_excel(ubicacion, sheet_name='hoja 1')
 		elif extencion == 'db':
-			con = sqlite3.connect(ubicacion)
-			dataframe.to_sql(ubicacion, con=con, index=False, if_exists='replace')
+			# con = sqlite3.connect(ubicacion)
+			engine = sqlalchemy.create_engine('sqlite:///{}'.format(ubicacion))
+			dataframe.to_sql(name=ubicacion, con=engine, index=False, if_exists='append')
 
-@app.route('/csv/action')
-@app.route('/csv/action', methods = ['GET','POST'])
+@app.route('/etl/action')
+@app.route('/etl/action', methods = ['GET','POST'])
 def action():
 	if "data_user" in session:
-		return render_template("action_csv.html")
+		return render_template("action.html")
 	else:
 		if request.method == 'POST':
 			try:
@@ -95,7 +95,7 @@ def action():
 					else:
 						session["name_table"] = ""
 					
-					return render_template('action_csv.html')
+					return render_template('action.html')
 				else: 
 					return csv()
 				
@@ -104,9 +104,9 @@ def action():
 
 	return csv()
 
-@app.route('/csv/limpiar')
-@app.route('/csv/limpiar', methods = ['POST'])
-def limpiar_csv():
+@app.route('/etl/limpiar')
+@app.route('/etl/limpiar', methods = ['POST'])
+def limpiar():
 	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
 
 	df_para_enviar = df
@@ -195,11 +195,11 @@ def limpiar_csv():
 					gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,stream="",accion= 'guardar')
 	except:
 		pass
-	return render_template('limpiar_csv.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len, hay_NULL = hay_nulos)
+	return render_template('limpiar.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len, hay_NULL = hay_nulos)
 
-@app.route('/csv/consultas')
-@app.route('/csv/consultas', methods = ['POST'])
-def consultas_csv():
+@app.route('/etl/consultas')
+@app.route('/etl/consultas', methods = ['POST'])
+def consultas():
 	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
 
 	df_para_enviar = df
@@ -223,7 +223,7 @@ def consultas_csv():
 				df_columna = df[columna]
 			except:
 				pass 
-			return render_template('consultar_csv.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len,  dataframe_col = df_columna)
+			return render_template('consultar.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len,  dataframe_col = df_columna)
 
 		#(action = 2)ver grupo de registros
 		elif action == 2:
@@ -288,15 +288,15 @@ def consultas_csv():
 
 				df_ordenado = df.sort_values(by=columna, ascending=direccion)
 				
-	return render_template('consultar_csv.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len, dataframe_filt = df_filtrado, dataframe_orde = df_ordenado)
+	return render_template('consultar.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len, dataframe_filt = df_filtrado, dataframe_orde = df_ordenado)
 
-@app.route('/csv/enviar_grafica')
+@app.route('/etl/enviar_grafica')
 def enviar_grafica():
 	filename = escape(session["grafica"])
 	return send_from_directory(APP_DESCARGAS_GRAFICAS,filename)
 
-@app.route('/csv/graficas')
-@app.route('/csv/graficas', methods = ['POST'])
+@app.route('/etl/graficas')
+@app.route('/etl/graficas', methods = ['POST'])
 def graficas():
 	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
 	df_para_enviar = df
@@ -435,7 +435,7 @@ def graficas():
 
 	return render_template('graficas.html', dataframe = df_para_enviar, str=str,  vista=vista, len = len, enumerate=enumerate, path_grafica = file_name)
 
-@app.route('/csv/action/exportar_dataset', methods = ['GET'])
+@app.route('/etl/action/exportar_dataset', methods = ['GET'])
 def exportar_dataset():
 	try:
 		if "data_user" in session:
@@ -473,8 +473,8 @@ def exportar_dataset():
 	except:
 		return "hubo error para enviar archivo"
 
-@app.route('/csv/especializada')
-@app.route('/csv/especializada', methods = ['POST'])
+@app.route('/etl/especializada')
+@app.route('/etl/especializada', methods = ['POST'])
 def especializada():
 	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], stream="",accion= 'cargar')
 
@@ -495,7 +495,7 @@ def especializada():
 
 	return render_template('especializada.html', result = result, salida_comando=salida_comando)
 
-@app.route('/csv/action/cambiar_dataset')
+@app.route('/etl/action/cambiar_dataset')
 def cambiar_dataset():
 	try:
 		archivo_eliminar = "/".join([APP_DESCARGAS, escape(session['data_user'])])
@@ -514,10 +514,12 @@ def cambiar_dataset():
 	except:
 		pass
 	try:
-		archivo_eliminar = "/".join([APP_DESCARGAS_EXPORT, escape(session['data_user'])])
+		archivo = escape(session['name_file']) + "." + escape(session['name_file'])
+		archivo_eliminar = "/".join([APP_DESCARGAS_EXPORT, archivo])
 		os.remove(archivo_eliminar)
 	except:
 		pass
+	session.pop("name_table",None)
 	session.pop('grafica', None)
 	session.pop('data_user', None)
 	return csv()
@@ -674,8 +676,6 @@ def graficadora(x=[],y=[],tipo="lineal",title="Gráfica",etiqueta = "", labelx =
         result = guardar_grafica(path, f)
         plt.close()
         return result
-
-
 
 if __name__ == '__main__':
 	app.run(debug=True, port=5000)

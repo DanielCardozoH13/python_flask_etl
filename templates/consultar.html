@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    ETL | consultas
+    ETL | Consultas
 {% endblock %}
 
 {% block content %}
@@ -42,7 +42,7 @@
 						<div class="panel-body">
 							<div class="list-group">
 								{% for i,elemento in enumerate(dataframe.columns) %}
-								  	<a href="{{url_for('consultas_csv', action = 1, item = elemento)}}" class="list-group-item {% if elemento == dataframe_col.name %} active {% endif %}">
+								  	<a href="{{url_for('consultas', action = 1, item = elemento)}}" class="list-group-item {% if elemento == dataframe_col.name %} active {% endif %}">
 								    	{{elemento}}
 								  	</a>
 								{% endfor %}
@@ -78,7 +78,7 @@
 						</div>
 						<div class="panel-body">
 							<div class="row">
-								<form class="md-form" action="{{url_for('consultas_csv', action = 2)}}" method="POST" >
+								<form class="md-form" action="{{url_for('consultas', action = 2)}}" method="POST" >
 									<div class="col-xs-4 form-group">
 										<label>
 											Grupo de filas
@@ -144,7 +144,7 @@
 						</div>
 						<div class="panel-body">
 							<div class="row">
-								<form class="md-form" action="{{url_for('consultas_csv', action = 3)}}" method="POST" >
+								<form class="md-form" action="{{url_for('consultas', action = 3)}}" method="POST" >
 									<div class="col-xs-7 form-group">
 										<label>Seleccionar Columnas para Filtar</label>
 										<select multiple="multiple" name="columnas" id="columnas"class="form-control">
@@ -193,7 +193,7 @@
 						</div>
 						<div class="panel-body">
 							<div class="row">
-								<form class="md-form" action="{{url_for('consultas_csv', action = 4)}}" method="POST" >
+								<form class="md-form" action="{{url_for('consultas', action = 4)}}" method="POST" >
 									<div class="col-xs-4 form-group">
 										<label>Seleccionar columna </label>
 										<select name="columna"class="form-control">
@@ -246,7 +246,7 @@
 						</div>
 						<div class="panel-body">
 							<div class="row">
-								<form class="md-form" action="{{url_for('consultas_csv', action = 5)}}" method="POST" >
+								<form class="md-form" action="{{url_for('consultas', action = 5)}}" method="POST" >
 									<div class="col-xs-4 form-group">
 										<label>Seleccionar columna </label>
 										<select name="columna"class="form-control">
@@ -303,23 +303,20 @@
 					<section>
 					<h3 class="sin_margenes">Consultas</h3><br>
 					<div class="list-group">
-						<a href="{{url_for('consultas_csv')}}" class="list-group-item {% if vista == 1 %} active {% endif %}">
+						<a href="{{url_for('consultas')}}" class="list-group-item {% if vista == 1 %} active {% endif %}">
 						Inicio Consultas
 						</a>
-						<a href="{{url_for('consultas_csv',action = 1)}}" class="list-group-item {% if vista == 2 %} active {% endif %}">
+						<a href="{{url_for('consultas',action = 1)}}" class="list-group-item {% if vista == 2 %} active {% endif %}">
 						Ver Columnas
 						</a>
-						<a href="{{url_for('consultas_csv',action = 2)}}" class="list-group-item {% if vista == 3 %} active {% endif %}">Ver Filas</a>
-						<a href="{{url_for('consultas_csv',action = 3)}}" class="list-group-item {% if vista == 4 %} active {% endif %}">Filtrar por Columnas</a>
-						<a href="{{url_for('consultas_csv',action = 4)}}" class="list-group-item {% if vista == 5 %} active {% endif %}">Filtrar por valor de Columna</a>
-						<a href="{{url_for('consultas_csv',action = 5)}}" class="list-group-item {% if vista == 6 %} active {% endif %}">Ordenar Por</a>
+						<a href="{{url_for('consultas',action = 2)}}" class="list-group-item {% if vista == 3 %} active {% endif %}">Ver Filas</a>
+						<a href="{{url_for('consultas',action = 3)}}" class="list-group-item {% if vista == 4 %} active {% endif %}">Filtrar por Columnas</a>
+						<a href="{{url_for('consultas',action = 4)}}" class="list-group-item {% if vista == 5 %} active {% endif %}">Filtrar por valor de Columna</a>
+						<a href="{{url_for('consultas',action = 5)}}" class="list-group-item {% if vista == 6 %} active {% endif %}">Ordenar Por</a>
 					</div>
 					</section>
 				</aside>
 				<ul class="pager">
-					<!--
-					<li><a href="{{url_for('consultas_csv')}}">Inicio Limpieza</a></li>
-				-->
 					<li><a href="{{url_for('action')}}">Home</a></li>
 				</ul>
 			</div>

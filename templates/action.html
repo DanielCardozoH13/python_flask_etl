@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-    ETL | csv 
+    ETL | Aplicación 
 {% endblock %}
 
 {% block content %}
@@ -12,7 +12,7 @@
 	          <div class="caption">
 	            <h3>Limpiar Datos</h3>
 	            <p>Permite realizar 5 tipos diferente de limpieza sobre el conjunto de datos subidos a la aplicación.</p>
-	            <p><a href="{{url_for('limpiar_csv')}}" class="btn btn-primary" role="button">Limpiar</a>
+	            <p><a href="{{url_for('limpiar')}}" class="btn btn-primary" role="button">Limpiar</a>
 	          </div>
 	        </div>
 	      </div>
@@ -21,7 +21,7 @@
 	          <div class="caption">
 	            <h3>Consultar Datos</h3>
 	            <p>Permite realizar 5 diferentes consultas sobre el data set subido.</p>
-	            <p><a href="{{url_for('consultas_csv')}}" class="btn btn-primary" role="button">Consultar</a>
+	            <p><a href="{{url_for('consultas')}}" class="btn btn-primary" role="button">Consultar</a>
 	          </div>
 	        </div>
 	      </div>
