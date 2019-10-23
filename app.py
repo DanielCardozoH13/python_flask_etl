@@ -111,7 +111,11 @@ def action():
 @app.route('/etl/limpiar')
 @app.route('/etl/limpiar', methods = ['POST'])
 def limpiar():
-	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
+	try:
+		df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
+	except:
+		flash("Hubo un Error en la carga del archivo", "alert")
+		return etl()
 
 	df_para_enviar = df
 	vista = 1
@@ -128,6 +132,7 @@ def limpiar():
 					df_para_enviar = df[df.isnull().any(axis=1)]
 					if request.args.get('eliminar'):
 						df = df.dropna()
+						flash("Se eliminarón todos los campos con columnas vacias", "alert")
 						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 
 						df_para_enviar = df
@@ -145,15 +150,19 @@ def limpiar():
 						columna = request.form['columna']
 						if accion == '1':
 							df = df.replace({columna: {np.nan: texto}})
+							flash("Modificación exitosa", "notify")
 						elif accion == '2':
 							df = df.replace({columna: {np.nan: 0}})
+							flash("Modificación exitosa", "notify")
 						elif accion == '3':
 							df = df.dropna(subset=[columna])
+							flash("Columna eliminada", "alert")
 						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 					null_columnas = df.columns[df.isnull().any()]
 					df_para_enviar = df[null_columnas]
 				else:
 					hay_nulos = False
+					flash("El conjuno de datos no tiene campos vacios", "notify")
 			#(action = 3) seleccionar columnas para crear nuevo dataset
 			elif action == 3:
 				vista = 4
@@ -175,12 +184,13 @@ def limpiar():
 						df = nuevo_df
 						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 						df_para_enviar = df.columns
+						flash("Conjunto de datos modificados Exitosamente!", "notify")
 					elif accion_nuevo == 'descargar':
 						if not os.path.isdir(APP_DESCARGAS_NUEVOS):
 							os.mkdir(APP_DESCARGAS_NUEVOS)
 
 						gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS_NUEVOS,dataframe=nuevo_df,accion= 'guardar')
-
+						flash("Descarga exitosa!", "notify")
 						return send_from_directory(APP_DESCARGAS_NUEVOS, escape(session["data_user"]), as_attachment=True)
 			#(action = 4)eliminar columnas
 			elif action == 4:
@@ -190,6 +200,8 @@ def limpiar():
 					df = df.drop([columna], axis=1)
 					gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
 					df_para_enviar = df
+					flash("Columna eliminada", "alert")
+
 			#(action = 5) renombrar columnas
 			elif action == 5:
 				vista = 6
@@ -197,14 +209,21 @@ def limpiar():
 					columnas = request.form
 					df.rename(columns=columnas, inplace=True)
 					gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS,dataframe=df,accion= 'guardar')
+					flash("Modificación exitosa", "notify")
+
 	except:
-		pass
+		flash("Hubo un error", "alert")
+		
 	return render_template('limpiar.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len, hay_NULL = hay_nulos)
 
 @app.route('/etl/consultas')
 @app.route('/etl/consultas', methods = ['POST'])
 def consultas():
-	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
+	try:
+		df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
+	except:
+		flash("Hubo un Error en la carga del archivo", "alert")
+		return etl()
 
 	df_para_enviar = df
 	vista = 1
@@ -291,6 +310,8 @@ def consultas():
 					direccion = True
 
 				df_ordenado = df.sort_values(by=columna, ascending=direccion)
+	else:
+		flash("Modificación exitosa", "notify")
 
 	return render_template('consultar.html', dataframe = df_para_enviar, enumerate=enumerate, vista=vista, len = len, dataframe_filt = df_filtrado, dataframe_orde = df_ordenado)
 
@@ -302,7 +323,11 @@ def enviar_grafica():
 @app.route('/etl/graficas')
 @app.route('/etl/graficas', methods = ['POST'])
 def graficas():
-	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
+	try: 
+		df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
+	except:
+		flash("Hubo un Error en la carga del archivo", "alert")
+		return etl()
 	df_para_enviar = df
 	vista = 1
 	file_name = []
@@ -463,15 +488,19 @@ def exportar_dataset():
 			else:
 				return "tipo %s" %tipo
 		else:
-			return "no session"
+			return etl()
 	except:
-		return "hubo error al enviar archivo"
+		flash("No adjunto ningun archivo.", "alert")
+		return etl()
 
 @app.route('/etl/especializada')
 @app.route('/etl/especializada', methods = ['POST'])
 def especializada():
-	df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
-
+	try:
+		df = gestion_dataframe(filename=escape(session["name_file"]), extencion=escape(session["extencion"]), path=APP_DESCARGAS, dataframe=[], accion= 'cargar')
+	except:
+		flash("No adjunto ningun archivo.", "alert")
+		return etl()
 	dataframe = df
 	result = False
 	salida_comando = ""
